@@ -103,9 +103,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="guides/index"
+          name="guides"
           options={{
-            title: 'Guides',
+            title: 'Guides', 
             tabBarIcon: ({ color }) => <IoniconsSimple size={24} name="people" color={color} />,
           }}
         />
