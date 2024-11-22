@@ -34,7 +34,7 @@ const router = useRouter()
       <View style={styles.buttonContainer}>
         <ThemedButton 
           title="Login" 
-          onPress={() => router.push('/home')} 
+          onPress={() => router.push('/')} 
         />
       </View>
       
