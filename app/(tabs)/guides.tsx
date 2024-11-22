@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
-import { ScrollView } from "react-native-gesture-handler";
+import { useRouter } from "expo-router";
 
 const guides = Array.from({ length: 10 }, (_, index) => ({
   id: index.toString(),
@@ -25,6 +25,8 @@ const guides = Array.from({ length: 10 }, (_, index) => ({
 }));
 
 const GuidesPage = () => {
+const router = useRouter()
+
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer}>
@@ -35,21 +37,18 @@ const GuidesPage = () => {
         </TouchableOpacity>
       </View>
 
-      {/* List of Guides */}
       <FlatList
       contentContainerStyle={{paddingBottom: 80}}
         showsVerticalScrollIndicator={false}
         data={guides}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            {/* Avatar and Badge */}
+          <TouchableOpacity onPress={() => router.push(`/guides/${item.id}` as any)} activeOpacity={0.8} style={styles.card}>
             <View style={styles.avatarContainer}>
               <Image source={{ uri: item.avatar }} style={styles.avatar} />
               {item.isOnline && <View style={styles.onlineBadge} />}
             </View>
 
-            {/* Guide Info */}
             <View style={styles.infoContainer}>
                 <View>
                   <View style={styles.nameRow}>
