@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1035138725655",
+    "project_id": "uzventure-demo",
+    "storage_bucket": "uzventure-demo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035138725655:android:c0093be24e326c1ba4e952",
+        "android_client_info": {
+          "package_name": "com.uzventure.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADouDP44oUfmh_6vW1SQgWJkFJj3TW3jY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,95 +1,314 @@
-import { Image, StyleSheet, Platform, View, Text } from 'react-native';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Modal,
+  Linking,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/config/firebaseConfig";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function ShoppingPage() {
+  const [products, setProducts] = useState<any>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
 
-export default function HomeScreen() {
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "product"));
+        const productsData: any = [];
+        querySnapshot.forEach((doc) => {
+          productsData.push({ id: doc.id, ...doc.data() });
+        });
+        setProducts(productsData);
+        setFilteredProducts(productsData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleSearch = (query: any) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setFilteredProducts(products);
+    } else {
+      const filtered = products.filter((product: any) =>
+        product.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    }
+  };
+
+  const handleProductPress = (product: any) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const handleContactPress = (number: string) => {
+    Linking.openURL(`tel:${number}`).catch((err) =>
+      console.error("An error occurred", err)
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#FF7F50" />
+      </View>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search products..."
+          value={searchQuery}
+          onChangeText={handleSearch}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle" className='text-black'>Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <Ionicons name="search" size={20} color="#555" style={styles.searchIcon} />
+      </View>
+
+      <FlatList
+        data={filteredProducts}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={styles.productList}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.productCard}
+            onPress={() => handleProductPress(item)}
+          >
+            <Image source={{ uri: item.image }} style={styles.productImage} />
+            <Text style={styles.productName}>{item.name}</Text>
+            <Text style={styles.productPrice}>${item.price}</Text>
+            <Text style={{...styles.productAvailability, color: item.availability ? "green" : "red"}}>
+              {item.availability ? "In Stock" : "Out of Stock"}
+            </Text>
+          </TouchableOpacity>
+        )}
+      />
+
+      {/* Modal for Product Details */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Image source={{ uri: selectedProduct?.image }} style={styles.modalImage} />
+            <Text style={styles.modalTitle}>{selectedProduct?.name}</Text>
+            <Text style={styles.modalDescription}>{selectedProduct?.description}</Text>
+            <Text style={styles.modalPrice}>Price: ${selectedProduct?.price}</Text>
+            <Text style={styles.modalShopName}>Shop: {selectedProduct?.shopName}</Text>
+            <Text style={styles.modalSellerName}>Seller: {selectedProduct?.sellerName}</Text>
+
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={styles.contactButton}
+                onPress={() => handleContactPress(selectedProduct?.phoneNumber)}
+              >
+                <Text style={styles.contactText}>Contact</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.addToCartButton}>
+                <Text style={styles.addToCartText}>Add to Basket</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#F5F5F5",
+    paddingHorizontal: 10,
+    paddingTop: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#555",
+  },
+  searchIcon: {
+    marginLeft: 10,
+  },
+  productList: {
+    paddingVertical: 10,
+  },
+  row: {
+    justifyContent: "space-between",
+  },
+  productCard: {
+    backgroundColor: "#FFF",
+    borderRadius: 8,
+    margin: 5,
+    padding: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    width: "47%",
+  },
+  productImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  productPrice: {
+    fontSize: 14,
+    color: "#FF7F50",
+    fontWeight: "bold",
+  },
+  productAvailability: {
+    fontSize: 12,
+    color: "#555",
+    marginTop: 5,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#FFF",
+    padding: 20,
+    borderRadius: 10,
+    width: "90%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 10,
+  },
+  modalPrice: {
+    fontSize: 16,
+    color: "#FF7F50",
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalShopName: {
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: "bold",
+  },
+  modalSellerName: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 10,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 10,
+  },
+  contactButton: {
+    backgroundColor: "#F0F2F4",
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+    marginRight: 10,
+  },
+  contactText: {
+    fontWeight: "bold",
+    color: "#111",
+  },
+  addToCartButton: {
+    backgroundColor: "#FF7F50",
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: "center",
+  },
+  addToCartText: {
+    fontWeight: "bold",
+    color: "#FFF",
+  },
+  closeButton: {
+    marginTop: 10,
+    backgroundColor: "#555",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: "#FFF",
+    fontWeight: "bold",
   },
 });

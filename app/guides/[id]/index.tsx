@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,76 +8,55 @@ import {
   TouchableOpacity,
   Linking,
   ScrollView,
-  Modal
+  Modal,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { Colors } from "@/constants/Colors";
-
-const guide = {
-  name: "Ulugbek Temirov",
-  age: 42,
-  phoneNumber: "+998936563672",
-  location: "Bukhara, Uzbekistan",
-  price: "$200/hour",
-  verified: true,
-  experience: "5 years experience",
-  bio: "I'm a father of two and have been living in San Francisco for over 10 years. I've worked at the best restaurants in the city and love to share my knowledge about food and wine with others.",
-  avatar: "https://cdn.usegalileo.ai/stability/e3075532-c7cb-4ddb-a6f8-09b53e58cdf8.png",
-  cars: [
-    {
-      id: "1",
-      model: "Tesla Model X",
-      year: "2022",
-      features: "Electric, Autopilot, Panoramic Sunroof",
-      price: "$50/hour",
-      image: "https://cdn.usegalileo.ai/stability/0981de47-88ca-40df-8548-94a1f158d560.png",
-    },
-    {
-      id: "2",
-      model: "Porsche Taycan",
-      year: "2023",
-      price: "$30/hour",
-      features: "Electric, Sporty, Fast",
-      image: "https://cdn.usegalileo.ai/stability/bfa01367-eab5-4d3d-8ff3-005f2d24f16b.png",
-    },
-  ],
-  languages: [{
-    name: "English",
-    level: "Proficient",
-  }, {
-    name: "Spanish",
-    level: "Basic",
-  }, {
-    name: "German",
-    level: "Advanced",
-  }],
-  services: ["Wine Tours", "City Tours", "Airport Transfers"],
-  reviews: [
-    {
-      id: "1",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      name: "Jenny",
-      date: "Jan 2022",
-      rating: 5,
-      
-      comment: "Michael is very professional and friendly.",
-    },
-    {
-      id: "2",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-      name: "Tina",
-      date: "Dec 2021",
-      rating: 4.5,
-      comment: "We had a great time with Michael. He's very knowledgeable.",
-
-    },
-  ],
-};
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "@/config/firebaseConfig";
+import { useLocalSearchParams } from "expo-router";
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+// import {format} from 'date-fns'
 
 export default function GuideDetailPage() {
-  const [selectedCar, setSelectedCar] = useState(null);
+  const { id }: any = useLocalSearchParams();
+
+  const [selectedCar, setSelectedCar] = useState<any>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [guide, setGuide] = useState<any>({});
+
+  const fetchGuideByField = async () => {
+    const q = query(collection(db, "guides"), where("id", "==", id));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      querySnapshot.forEach((doc) => {
+        console.log(doc.id, " => ", doc.data());
+        setGuide(doc.data());
+      });
+    } else {
+      console.log("No matching document found!");
+    }
+  };
+
+  useEffect(() => {
+    async function loadGuides() {
+      setLoading(true);
+      const data = await fetchGuideByField();
+      // setGuide(data);
+      setLoading(false);
+    }
+    loadGuides();
+  }, []);
 
   const handleCarPress = (car: any) => {
     setSelectedCar(car);
@@ -100,7 +79,13 @@ export default function GuideDetailPage() {
       console.error("An error occurred", err)
     );
   };
-  
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  console.log("guide details:", guide);
+
   return (
     <ParallaxScrollView
       headerImage={
@@ -110,22 +95,67 @@ export default function GuideDetailPage() {
     >
       {/* Guide Information */}
       <View style={styles.profileSection}>
-  <Text style={styles.guideTitle}>{guide.name} {guide.verified && <MaterialIcons name="verified" size={16} color="green" />}</Text>
-  <Text style={styles.age}>
-    {guide.age} years old
+  <Text style={styles.guideTitle}>
+    {guide?.name}{" "}
+    {guide?.isVerified && (
+      <MaterialIcons name="verified" size={16} color="green" />
+    )}
   </Text>
-  <Text style={styles.subText}>{guide.location}</Text>
-  <Text style={styles.subText}><Ionicons name="call" size={16} color="gray" /> {guide.phoneNumber}</Text> {/* Add this line */}
+  <Text style={styles.age}>{guide?.age} years old</Text>
+  <Text style={styles.subText}>{guide?.location}</Text>
+  <Text style={styles.subText}>{guide?.phoneNumber}</Text>
   <Text style={styles.subText}>
-    {guide.price} • {guide.experience}
+    ${guide?.price}/hour • {guide?.experience} of experience
   </Text>
   <View style={styles.buttonContainer}>
     <TouchableOpacity style={styles.contactButton}>
-      <Text style={styles.contactText} onPress={handleContactPress}>Contact</Text>
+      <Text style={styles.contactText} onPress={handleContactPress}>
+        Contact
+      </Text>
     </TouchableOpacity>
     <TouchableOpacity style={styles.bookButton}>
       <Text style={styles.bookText}>Book Now</Text>
     </TouchableOpacity>
+  </View>
+  <Text style={styles.buttonsSubText}>
+    "Book Now" button will send booking letter to guides email:{" "}
+    {guide?.email}
+  </Text>
+
+  {/* Social Media Section */}
+  <View style={styles.socialMediaContainer}>
+    {guide?.socialMedia?.telegram && (
+      <TouchableOpacity
+        onPress={() => Linking.openURL(guide.socialMedia.telegram)}
+        style={styles.iconButton}
+      >
+        <FontAwesome name="telegram" size={24} color="#0088cc" />
+      </TouchableOpacity>
+    )}
+    {guide?.socialMedia?.instagram && (
+      <TouchableOpacity
+        onPress={() => Linking.openURL(guide.socialMedia.instagram)}
+        style={styles.iconButton}
+      >
+        <Ionicons name="logo-instagram" size={24} color="#C13584" />
+      </TouchableOpacity>
+    )}
+    {guide?.socialMedia?.youtube && (
+      <TouchableOpacity
+        onPress={() => Linking.openURL(guide.socialMedia.youtube)}
+        style={styles.iconButton}
+      >
+        <Ionicons name="logo-youtube" size={24} color="#FF0000" />
+      </TouchableOpacity>
+    )}
+    {guide?.socialMedia?.linkedin && (
+      <TouchableOpacity
+        onPress={() => Linking.openURL(guide.socialMedia.linkedin)}
+        style={styles.iconButton}
+      >
+        <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
+      </TouchableOpacity>
+    )}
   </View>
 </View>
 
@@ -144,7 +174,10 @@ export default function GuideDetailPage() {
           horizontal
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.carCard} onPress={() => handleCarPress(item)}>
+            <TouchableOpacity
+              style={styles.carCard}
+              onPress={() => handleCarPress(item)}
+            >
               <Image source={{ uri: item.image }} style={styles.carImage} />
               <Text style={styles.carModel}>{item.model}</Text>
             </TouchableOpacity>
@@ -152,38 +185,48 @@ export default function GuideDetailPage() {
           showsHorizontalScrollIndicator={false}
         />
 
-<Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={closeModal}
-        // close when user clicks outside the modal
-        onDismiss={closeModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {/* @ts-ignore */}
-            <Text style={styles.modalTitle}>{selectedCar?.model}</Text>
-            {/* @ts-ignore */}
-            <Text>Year: {selectedCar?.year}</Text>
-            {/* @ts-ignore */}
-            <Text>Features: {selectedCar?.features}</Text>
-            {/* @ts-ignore */}
-            <Text>Price: {selectedCar?.price}</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
+        <Modal
+          visible={isModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={closeModal}
+          // close when user clicks outside the modal
+          onDismiss={closeModal}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Image
+                source={{ uri: selectedCar?.image }}
+                style={styles.modalImage}
+              />
+              <Text style={styles.modalTitle}>{selectedCar?.model}</Text>
+              <Text>
+                Year: {selectedCar?.year}
+              </Text>
+              <Text>
+                Features: {selectedCar?.features.join(", ")}
+              </Text>
+              <Text>
+                Price: ${selectedCar?.price} / km
+              </Text>
+              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
       </View>
 
       {/* Services Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Services</Text>
-        {guide.services.map((service, index) => (
+        {guide.services?.map((service: any, index: any) => (
           <View key={index} style={styles.serviceRow}>
-            <Ionicons name="checkmark-circle-outline" size={16} color="#4CAF50" />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color="#4CAF50"
+            />
             <Text style={styles.serviceText}>{service}</Text>
           </View>
         ))}
@@ -192,35 +235,73 @@ export default function GuideDetailPage() {
       {/* Languages Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Languages</Text>
-        {guide.languages.map((language, index) => (
+        {guide.languages?.map((language: any, index: any) => (
           <View key={index} style={styles.languageRow}>
-            <Ionicons style={{marginTop: 3}} name="language-outline" size={16} color="#555" />
-            <Text style={styles.languageText}>{language.name} - {language.level}</Text> 
+            <Ionicons
+              style={{ marginTop: 3 }}
+              name="language-outline"
+              size={16}
+              color="#555"
+            />
+            <Text style={styles.languageText}>
+              {language.name} - {language.level}
+            </Text>
           </View>
         ))}
       </View>
 
       {/* Reviews Section */}
       <View style={{ marginTop: 20 }}>
-  <Text style={styles.sectionTitle}>Reviews</Text>
-  <ScrollView style={{paddingVertical: 10}} horizontal showsHorizontalScrollIndicator={false}>
-    {guide.reviews.map((review, index) => (
-      <View key={index} style={styles.reviewCard}>
-        <Image source={{ uri: review.avatar }} style={styles.reviewerAvatar} />
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.reviewerName}>{review.name}</Text>
-          <Text style={styles.reviewDate}>{review.date}</Text>
-          <View style={styles.starContainer}>
-            {Array.from({ length: review.rating }).map((_, i) => (
-              <Ionicons key={i} name="star" size={16} color="gold" />
-            ))}
-          </View>
-          <Text style={styles.reviewText}>{review.comment}</Text>
-        </View>
+        <Text style={styles.sectionTitle}>Reviews</Text>
+        <ScrollView
+          style={{ paddingVertical: 10 }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {guide.reviews?.map((review: any, index: any) => (
+            <View key={index} style={styles.reviewCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Image
+                source={{ uri: review.avatar }}
+                style={styles.reviewerAvatar}
+              />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={styles.reviewerName}>{review.name}</Text>
+                <Text style={styles.reviewDate}>{review.date}</Text>
+                <View style={styles.starContainer}>
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    if (i < Math.floor(review.rating)) {
+                      return (
+                        <Ionicons key={i} name="star" size={16} color="gold" />
+                      );
+                    } else if (i < Math.ceil(review.rating)) {
+                      return (
+                        <Ionicons
+                          key={i}
+                          name="star-half"
+                          size={16}
+                          color="gold"
+                        />
+                      );
+                    } else {
+                      return (
+                        <Ionicons
+                          key={i}
+                          name="star-outline"
+                          size={16}
+                          color="gold"
+                        />
+                      );
+                    }
+                  })}
+                </View>
+              </View>
+            </View>
+                <Text style={styles.reviewText}>{review.comment}</Text>
+            </View>
+          ))}
+        </ScrollView>
       </View>
-    ))}
-  </ScrollView>
-</View>
     </ParallaxScrollView>
   );
 }
@@ -230,6 +311,14 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+  },
+  socialMediaContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  iconButton: {
+    marginHorizontal: 10,
   },
   profileSection: {
     padding: 20,
@@ -244,11 +333,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-    phoneText: {
+  phoneText: {
     fontSize: 16,
-    color: '#555',
+    color: "#555",
     marginTop: 5,
-  },  
+  },
   subText: {
     fontSize: 14,
     color: "#555",
@@ -259,6 +348,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 10,
   },
+  modalImage: {
+    width: "100%",
+    height: 200,
+    resizeMode: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
   contactButton: {
     flex: 1,
     backgroundColor: "#F0F2F4",
@@ -266,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 10,
     alignItems: "center",
-    textAlign: 'center'
+    textAlign: "center",
   },
   contactText: {
     fontWeight: "bold",
@@ -278,13 +374,13 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     alignItems: "center",
-    width: 150
+    width: 150,
   },
   bookText: {
     fontWeight: "bold",
     color: "#FFF",
-    textAlign: 'center',
-    flexWrap: 'nowrap'
+    textAlign: "center",
+    flexWrap: "nowrap",
   },
   section: {
     padding: 20,
@@ -300,9 +396,9 @@ const styles = StyleSheet.create({
   },
   age: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     color: "#555",
-    marginBottom: 2
+    marginBottom: 2,
   },
   text: {
     fontSize: 14,
@@ -311,6 +407,13 @@ const styles = StyleSheet.create({
   carDetails: {
     fontSize: 12,
     color: "#555",
+  },
+  buttonsSubText: {
+    fontSize: 10,
+    color: "#555",
+    textAlign: "center",
+    maxWidth: 300,
+    marginTop: 10,
   },
   serviceRow: {
     flexDirection: "row",
@@ -334,17 +437,17 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: '#333',
+    color: "#333",
   },
   reviewCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "column",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 15,
     marginRight: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -352,35 +455,35 @@ const styles = StyleSheet.create({
     width: 300, // Adjust card width as needed
   },
   reviewerAvatar: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     borderRadius: 25,
-    marginRight: 10,
   },
   reviewerName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   reviewDate: {
     fontSize: 12,
-    color: '#888',
+    color: "#888",
     marginTop: 2,
   },
   starContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginVertical: 5,
   },
   reviewText: {
     fontSize: 14,
-    color: '#555',
+    color: "#555",
     lineHeight: 18,
+    marginTop: 5
   },
   guideTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
-    color: '#333',
+    color: "#333",
   },
   container: {
     flex: 1,
@@ -391,53 +494,52 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   carImage: {
-    width: '100%',
+    width: "100%",
     height: 100,
     borderRadius: 8,
   },
   carModel: {
-    marginTop: 8,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    marginTop: 5,
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    height: 'auto',
-    position: 'absolute',
+    justifyContent: "flex-end",
+    height: "auto",
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.0)',
+    backgroundColor: "rgba(0, 0, 0, 0.0)",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 20,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     elevation: 5,
     // shadow
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   closeButton: {
     marginTop: 20,
-    backgroundColor: '#FF7F50',
+    backgroundColor: "#FF7F50",
     padding: 10,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   closeButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
-
