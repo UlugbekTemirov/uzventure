@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ThemedText } from "@/components/ThemedText";
@@ -56,6 +57,14 @@ useEffect(() => {
   loadGuides();
 }, []);
 
+if (loading) {
+  return (
+    <View style={styles.loaderContainer}>
+      <ActivityIndicator size="large" color="#FF7F50" />
+    </View>
+  );
+}
+
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer}>
@@ -66,7 +75,7 @@ useEffect(() => {
         </TouchableOpacity>
       </View>
 
-      {loading ? 'loading' : <FlatList
+      {loading ? <Text>loading</Text> : <FlatList
       contentContainerStyle={{paddingBottom: 80}}
         showsVerticalScrollIndicator={false}
         data={guides}
@@ -126,6 +135,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F5F5F5",
     padding: 15,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     fontSize: 24,

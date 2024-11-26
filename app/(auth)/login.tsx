@@ -1,14 +1,40 @@
-import React from 'react';
-import { View, Text, Button, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedTextInput } from '@/components/ThemedTextInput';
 import { Colors } from '@/constants/Colors';
 import { Link, useRouter } from 'expo-router';
 import { ThemedButton } from '@/components/ThemedButton';
+import { auth } from '@/config/firebaseConfig'; // Your Firebase config
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen() {
-const router = useRouter()
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert('Success', `Welcome back, ${userCredential.user.email}!`);
+      console.log('User logged in:', userCredential.user.uid);
+      await AsyncStorage.setItem("userId", userCredential.user.uid);
+      router.push('/');
+    } catch (error) {
+      Alert.alert('Error', 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -21,11 +47,15 @@ const router = useRouter()
       
       <ThemedTextInput 
         placeholder="Email" 
+        value={email}
+        onChangeText={setEmail}
         style={styles.input} 
         placeholderTextColor={Colors.light.icon} 
       />
       <ThemedTextInput 
         placeholder="Password" 
+        value={password}
+        onChangeText={setPassword}
         style={styles.input} 
         secureTextEntry 
         placeholderTextColor={Colors.light.icon} 
@@ -33,8 +63,8 @@ const router = useRouter()
 
       <View style={styles.buttonContainer}>
         <ThemedButton 
-          title="Login" 
-          onPress={() => router.push('/')} 
+          title={loading ? 'Logging in...' : 'Login'} 
+          onPress={handleLogin} 
         />
       </View>
       

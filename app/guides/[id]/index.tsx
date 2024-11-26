@@ -167,7 +167,8 @@ export default function GuideDetailPage() {
       </View>
 
       {/* Cars Section */}
-      <View style={styles.section}>
+      {guide?.cars?.length > 0 && (
+        <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cars</Text>
         <FlatList
           data={guide.cars}
@@ -216,6 +217,7 @@ export default function GuideDetailPage() {
           </View>
         </Modal>
       </View>
+      )}
 
       {/* Services Section */}
       <View style={styles.section}>
@@ -251,57 +253,59 @@ export default function GuideDetailPage() {
       </View>
 
       {/* Reviews Section */}
-      <View style={{ marginTop: 20 }}>
-        <Text style={styles.sectionTitle}>Reviews</Text>
-        <ScrollView
-          style={{ paddingVertical: 10 }}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          {guide.reviews?.map((review: any, index: any) => (
-            <View key={index} style={styles.reviewCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Image
-                source={{ uri: review.avatar }}
-                style={styles.reviewerAvatar}
-              />
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.reviewerName}>{review.name}</Text>
-                <Text style={styles.reviewDate}>{review.date}</Text>
-                <View style={styles.starContainer}>
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    if (i < Math.floor(review.rating)) {
-                      return (
-                        <Ionicons key={i} name="star" size={16} color="gold" />
-                      );
-                    } else if (i < Math.ceil(review.rating)) {
-                      return (
-                        <Ionicons
-                          key={i}
-                          name="star-half"
-                          size={16}
-                          color="gold"
-                        />
-                      );
-                    } else {
-                      return (
-                        <Ionicons
-                          key={i}
-                          name="star-outline"
-                          size={16}
-                          color="gold"
-                        />
-                      );
-                    }
-                  })}
+      {
+        guide.reviews?.length > 0 && (<View style={{ marginTop: 20 }}>
+          <Text style={styles.sectionTitle}>Reviews</Text>
+          <ScrollView
+            style={{ paddingVertical: 10 }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {guide.reviews?.map((review: any, index: any) => (
+              <View key={index} style={styles.reviewCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Image
+                  source={{ uri: review.avatar }}
+                  style={styles.reviewerAvatar}
+                />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.reviewerName}>{review.name}</Text>
+                  <Text style={styles.reviewDate}>{review.date}</Text>
+                  <View style={styles.starContainer}>
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      if (i < Math.floor(review.rating)) {
+                        return (
+                          <Ionicons key={i} name="star" size={16} color="gold" />
+                        );
+                      } else if (i < Math.ceil(review.rating)) {
+                        return (
+                          <Ionicons
+                            key={i}
+                            name="star-half"
+                            size={16}
+                            color="gold"
+                          />
+                        );
+                      } else {
+                        return (
+                          <Ionicons
+                            key={i}
+                            name="star-outline"
+                            size={16}
+                            color="gold"
+                          />
+                        );
+                      }
+                    })}
+                  </View>
                 </View>
               </View>
-            </View>
-                <Text style={styles.reviewText}>{review.comment}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+                  <Text style={styles.reviewText}>{review.comment}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>)
+      }
     </ParallaxScrollView>
   );
 }
