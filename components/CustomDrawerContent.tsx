@@ -9,49 +9,50 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function CustomDrawerContent(props: any) {
+export default function CustomDrawerContent({ fetchUser, user, ...props }: any)  {
   const router = useRouter();
   const { top, bottom } = useSafeAreaInsets();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // const [user, setUser] = useState<any>(null);
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userId = await AsyncStorage.getItem("userId");
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const userId = await AsyncStorage.getItem("userId");
 
-        if (userId) {
-          const userDocRef = doc(db, "users", userId);
-          const userDoc = await getDoc(userDocRef);
+  //       if (userId) {
+  //         const userDocRef = doc(db, "users", userId);
+  //         const userDoc = await getDoc(userDocRef);
 
-          if (userDoc.exists()) {
-            setUser(userDoc.data());
-          } else {
-            console.warn("User data not found in Firestore.");
-            setUser({ name: "Guest", email: "No Email" });
-          }
-        } else {
-          console.warn("No user ID found in storage. Redirecting to login.");
-          router.push("/(auth)/login");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        router.push("/(auth)/login");
-      } finally {
-        setLoading(false);
-      }
-    };
+  //         if (userDoc.exists()) {
+  //           setUser(userDoc.data());
+  //         } else {
+  //           console.warn("User data not found in Firestore.");
+  //           setUser({ name: "Guest", email: "No Email" });
+  //         }
+  //       } else {
+  //         console.warn("No user ID found in storage. Redirecting to login.");
+  //         router.push("/(auth)/login");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching user data:", error);
+  //       router.push("/(auth)/login");
+  //     } finally {
+  //       // setLoading(false);
+        
+  //     }
+  //   };
 
-    fetchUser();
-  }, []);
+  //   fetchUser();
+  // }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#5363df" />
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <ActivityIndicator size="large" color="#5363df" />
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={{ flex: 1 }}>

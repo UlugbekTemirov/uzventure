@@ -40,7 +40,6 @@ export default function GuideDetailPage() {
 
     if (!querySnapshot.empty) {
       querySnapshot.forEach((doc) => {
-        console.log(doc.id, " => ", doc.data());
         setGuide(doc.data());
       });
     } else {

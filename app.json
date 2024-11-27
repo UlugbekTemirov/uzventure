@@ -10,16 +10,14 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ulugbektemirov.Uzventure", 
-      "googleServicesFile": "./GoogleService-Info.plist" 
+      "bundleIdentifier": "com.ulugbektemirov.Uzventure"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/playstore-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ulugbektemirov.Uzventure", 
-      "googleServicesFile": "./google-services.json" 
+      "package": "com.ulugbektemirov.Uzventure"
     },
     "web": {
       "bundler": "metro",

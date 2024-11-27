@@ -6,7 +6,7 @@ import { Drawer } from 'expo-router/drawer';
 import 'react-native-gesture-handler';
 import CustomDrawerContent from '@/components/CustomDrawerContent';
 import { Children, useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from "@/config/firebaseConfig";
 import { ActivityIndicator, LogBox, View } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,7 +32,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       try {
         const querySnapshot = await getDocs(collection(db, "guides"));
         querySnapshot.forEach((doc) => {
-          console.log(doc.id, " => ", doc.data());
         });
       } catch (error) {
         console.error("Firebase error:", error);
@@ -44,17 +43,43 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const checkUserSession = async () => {
       const userId = await AsyncStorage.getItem("userId");
-      console.log(userId)
+      console.log("userID", userId)
 
       if (!userId) {
         router.push("/(auth)/login");
+        setLoading(false);
       } else {
         setLoading(false);
       }
     };
 
     checkUserSession();
+    setLoading(false);
   }, []);
+
+  const [user, setUser] = useState<any>(null);
+
+  const fetchUser = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUser(userDoc.data());
+        } else {
+          console.warn("User data not found in Firestore.");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
 
   if (loading) {
     return (
@@ -68,12 +93,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ThemeProvider value={DefaultTheme}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <Drawer
+           screenListeners={{
+            state: (e) => {
+              const isDrawerOpen = e.data?.state?.history?.at(-1)?.type === "drawer";
+              if (isDrawerOpen) {
+                fetchUser(); 
+              }
+            },
+          }}
             screenOptions={{
               drawerHideStatusBarOnOpen: false,
               drawerActiveBackgroundColor: '#5363df',
               drawerActiveTintColor: '#fff',
             }}
-            drawerContent={CustomDrawerContent}
+            drawerContent={props => <CustomDrawerContent user={user} fetchUser={fetchUser} {...props} />}
+           
           >
             <Drawer.Screen
               name="(tabs)"
