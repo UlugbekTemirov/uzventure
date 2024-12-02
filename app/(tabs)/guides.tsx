@@ -42,52 +42,59 @@ const fetchGuides = async () => {
 };
 
 const GuidesPage = () => {
-const router = useRouter()
+  const router = useRouter();
 
-const [guides, setGuides] = useState<any>([]);
-const [loading, setLoading] = useState(false)
+  const [guides, setGuides] = useState<any>([]);
+  const [loading, setLoading] = useState(false);
 
-useEffect(() => {
-  async function loadGuides() {
-    setLoading(true)
-    const data = await fetchGuides();
-    setGuides(data);
-    setLoading(false)
+  useEffect(() => {
+    async function loadGuides() {
+      setLoading(true);
+      const data = await fetchGuides();
+      setGuides(data);
+      setLoading(false);
+    }
+    loadGuides();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#FF7F50" />
+      </View>
+    );
   }
-  loadGuides();
-}, []);
-
-if (loading) {
-  return (
-    <View style={styles.loaderContainer}>
-      <ActivityIndicator size="large" color="#FF7F50" />
-    </View>
-  );
-}
 
   return (
     <View style={styles.container}>
       <View style={styles.filterContainer}>
-      <ThemedText style={styles.header}>Guides</ThemedText>
+        <ThemedText style={styles.header}>Guides</ThemedText>
         <TouchableOpacity style={styles.filterButton}>
           <Ionicons name="filter" size={20} color="#fff" />
           <Text style={styles.filterText}>Filter</Text>
         </TouchableOpacity>
       </View>
 
-      {loading ? <Text>loading</Text> : <FlatList
-      contentContainerStyle={{paddingBottom: 80}}
-        showsVerticalScrollIndicator={false}
-        data={guides}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => router.push(`/guides/${item.id}` as any)} activeOpacity={0.8} style={styles.card}>
-            <View style={styles.avatarContainer}>
-              <Image source={{ uri: item.avatar }} style={styles.avatar} />
-              {item.isOnline && <View style={styles.onlineBadge} />}
-            </View>
+      {loading ? (
+        <Text>loading</Text>
+      ) : (
+        <FlatList
+          contentContainerStyle={{ paddingBottom: 80 }}
+          showsVerticalScrollIndicator={false}
+          data={guides}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => router.push(`/guides/${item.id}` as any)}
+              activeOpacity={0.8}
+              style={styles.card}
+            >
+              <View style={styles.avatarContainer}>
+                <Image source={{ uri: item.avatar }} style={styles.avatar} />
+                {item.isOnline && <View style={styles.onlineBadge} />}
+              </View>
 
-            <View style={styles.infoContainer}>
+              <View style={styles.infoContainer}>
                 <View>
                   <View style={styles.nameRow}>
                     <Text style={styles.name}>{item.name}</Text>
@@ -101,31 +108,33 @@ if (loading) {
                   </View>
                 </View>
 
-              
-              <View style={styles.languagesRow}>
-                <Ionicons name="language" size={16} color="black" />
-                {item.languages.map((language: any, index: number) => (
-                  <Text key={index} style={styles.languages}>
-                    {language.name}
-                  </Text>
-                ))}
-              </View>
-
-              <View style={styles.languagesRow}>
-                <Ionicons name="cash-outline" size={16} color="black" />
-                <ThemedText style={styles.languages}>
-                   ${item.price} / hour
-                </ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.ratingRow}>
-                  <Ionicons name="star" size={16} color="gold" />
-                  <Text style={styles.rating}>{item.rating}</Text>
+                <View style={styles.languagesRow}>
+                  <Ionicons name="language" size={16} color="black" />
+                  <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                    {item.languages.map((language: any, index: number) => (
+                      <Text key={index} style={styles.languages}>
+                        {language.name}
+                      </Text>
+                    ))}
+                  </View>
                 </View>
-          </TouchableOpacity>
-        )}
-      />}
+
+                <View style={styles.languagesRow}>
+                  <Ionicons name="cash-outline" size={16} color="black" />
+                  <ThemedText style={styles.languages}>
+                    ${item.price} / hour
+                  </ThemedText>
+                </View>
+              </View>
+
+              <View style={styles.ratingRow}>
+                <Ionicons name="star" size={16} color="gold" />
+                <Text style={styles.rating}>{item.rating}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 };

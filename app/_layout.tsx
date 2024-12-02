@@ -1,33 +1,31 @@
-import { ThemeProvider } from '@react-navigation/native';
-import 'react-native-reanimated';
-import { DefaultTheme } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Drawer } from 'expo-router/drawer';
-import 'react-native-gesture-handler';
-import CustomDrawerContent from '@/components/CustomDrawerContent';
-import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { ThemeProvider } from "@react-navigation/native";
+import "react-native-reanimated";
+import { DefaultTheme } from "@react-navigation/native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Drawer } from "expo-router/drawer";
+import "react-native-gesture-handler";
+import CustomDrawerContent from "@/components/CustomDrawerContent";
+import { useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { ActivityIndicator, LogBox, View } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import CustomHeader from '@/components/CustomHeader';
-import { Slot } from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import CustomHeader from "@/components/CustomHeader";
+import { Slot } from "expo-router";
+import { Colors } from "@/constants/Colors";
 
-// Set the initial route for the drawer
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: "(tabs)",
 };
 
 LogBox.ignoreLogs(["Setting a timer"]);
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
-  // Fetch user data from Firestore based on session
   const fetchUser = async () => {
     try {
       const userId = await AsyncStorage.getItem("userId");
@@ -45,27 +43,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     }
   };
 
-  // Check if the user session exists and redirect if necessary
   const checkUserSession = async () => {
     try {
       const userId = await AsyncStorage.getItem("userId");
       if (!userId) {
-        router.push("/(auth)/login"); // Navigate to login page if no userId
+        router.push("/(auth)/login");
       }
     } catch (error) {
       console.error("Error checking user session:", error);
     } finally {
-      setLoading(false); // Set loading to false after session check
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     const initialize = async () => {
-      await fetchUser(); // Fetch user data
-      await checkUserSession(); // Check user session
+      await fetchUser();
+      await checkUserSession();
     };
-    initialize(); // Run initialization
-  }, []); // Only run once on component mount
+    initialize();
+  }, []);
 
   if (loading) {
     return (
@@ -87,13 +84,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               />
             ),
             drawerHideStatusBarOnOpen: false,
-            drawerActiveBackgroundColor: "#5363df",
+            drawerActiveBackgroundColor: Colors.light.tint,
             drawerActiveTintColor: "#fff",
           }}
-          drawerContent={(props) => <CustomDrawerContent user={user} {...props} />}
+          drawerContent={(props) => (
+            <CustomDrawerContent user={user} {...props} />
+          )}
         >
-          {/* Slot is required to render child routes */}
-          <Slot />  
+          <Slot />
         </Drawer>
       </GestureHandlerRootView>
     </ThemeProvider>

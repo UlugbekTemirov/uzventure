@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,86 +9,62 @@ import {
   Image,
   Modal,
 } from "react-native";
-
-const DISTRICTS = [
-  {
-    id: "1",
-    name: "Bukhara District",
-    locations: [
-      {
-        id: "1",
-        name: "Ark Fortress",
-        description: "A historic fortress in Bukhara.",
-        image: "https://example.com/ark-fortress.jpg",
-        details:
-          "The Ark is a massive fortress located in Bukhara, Uzbekistan. It was built in the 5th century AD and has been home to rulers of Bukhara for centuries.",
-        coordinates: "39.7747° N, 64.4156° E",
-      },
-      {
-        id: "2",
-        name: "Bolo Haouz Mosque",
-        description: "A beautiful mosque near the Ark Fortress.",
-        image: "https://example.com/bolo-haouz.jpg",
-        details:
-          "Bolo Haouz Mosque, also known as the 'Mosque of Forty Pillars,' was built in 1712 and is famous for its stunning wooden pillars.",
-        coordinates: "39.7775° N, 64.4162° E",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Samarkand District",
-    locations: [
-      {
-        id: "1",
-        name: "Registan Square",
-        description: "The heart of Samarkand's history.",
-        image: "https://example.com/registan.jpg",
-        details:
-          "Registan Square is an iconic landmark of Samarkand, featuring three majestic madrasahs built during the Timurid Empire.",
-        coordinates: "39.6542° N, 66.9763° E",
-      },
-      {
-        id: "2",
-        name: "Gur-e-Amir Mausoleum",
-        description: "The resting place of Amir Timur.",
-        image: "https://example.com/gur-e-amir.jpg",
-        details:
-          "The Gur-e-Amir Mausoleum is a masterpiece of Persian-Mongol architecture and the final resting place of Tamerlane (Amir Timur).",
-        coordinates: "39.6549° N, 66.9719° E",
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Samarkand District",
-    locations: [
-      {
-        id: "1",
-        name: "Registan Square",
-        description: "The heart of Samarkand's history.",
-        image: "https://example.com/registan.jpg",
-        details:
-          "Registan Square is an iconic landmark of Samarkand, featuring three majestic madrasahs built during the Timurid Empire.",
-        coordinates: "39.6542° N, 66.9763° E",
-      },
-      {
-        id: "2",
-        name: "Gur-e-Amir Mausoleum",
-        description: "The resting place of Amir Timur.",
-        image: "https://example.com/gur-e-amir.jpg",
-        details:
-          "The Gur-e-Amir Mausoleum is a masterpiece of Persian-Mongol architecture and the final resting place of Tamerlane (Amir Timur).",
-        coordinates: "39.6549° N, 66.9719° E",
-      },
-    ],
-  },
-];
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/config/firebaseConfig";
+import { Linking } from "react-native";
 
 export default function LocationsPage() {
-  const [districts, setDistricts] = useState(DISTRICTS);
+  const [districts, setDistricts] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "locations"));
+        const fetchedDistricts: any = {};
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const districtName = data.region.name;
+          const location = {
+            id: data.id,
+            name: data.name,
+            description: data.info,
+            image: data.image,
+            details: data.info,
+            coordinates: `${data.geoLocation.latitude}° N, ${data.geoLocation.longitude}° E`,
+            googleLink: data.googleLocation,
+          };
+
+          if (!fetchedDistricts[districtName]) {
+            fetchedDistricts[districtName] = {
+              id: data.region.id,
+              name: districtName,
+              locations: [],
+            };
+          }
+
+          fetchedDistricts[districtName].locations.push(location);
+        });
+
+        const districtArray = Object.values(fetchedDistricts).map(
+          (district: any) => ({
+            ...district,
+            locations: district.locations.sort((a: any, b: any) =>
+              a.name.localeCompare(b.name)
+            ),
+          })
+        );
+
+        setDistricts(districtArray as any);
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+
+    fetchLocations();
+  }, []);
 
   const handleLocationPress = (location: any) => {
     setSelectedLocation(location);
@@ -99,23 +75,41 @@ export default function LocationsPage() {
     setModalVisible(false);
   };
 
-  const renderLocationCard = (location: any) => (
-    <TouchableOpacity
-      key={location.id}
-      style={styles.locationCard}
-      onPress={() => handleLocationPress(location)}
-    >
-      <Image source={{ uri: location.image }} style={styles.locationImage} />
-      <Text style={styles.locationName}>{location.name}</Text>
-      <Text style={styles.locationDescription}>{location.description}</Text>
-    </TouchableOpacity>
-  );
+  const renderLocationCard = (location: any) => {
+    const rating = location.rating || "5.0";
+
+    return (
+      <TouchableOpacity
+        key={location.id}
+        style={styles.locationCard}
+        onPress={() => handleLocationPress(location)}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: location.image }}
+            style={styles.locationImage}
+          />
+          <View style={styles.ratingOverlay}>
+            <Text style={styles.ratingText}>{rating} ★</Text>
+          </View>
+        </View>
+        <Text style={styles.locationName}>{location.name}</Text>
+        <Text
+          style={styles.locationDescription}
+          numberOfLines={3}
+          ellipsizeMode="tail"
+        >
+          {location.description}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Explore Locations</Text>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {districts.map((district) => (
+        {districts.map((district: any) => (
           <View key={district.id} style={styles.districtContainer}>
             <Text style={styles.districtName}>{district.name}</Text>
             <FlatList
@@ -124,13 +118,14 @@ export default function LocationsPage() {
               horizontal
               renderItem={({ item }) => renderLocationCard(item)}
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.locationsList}
+              contentContainerStyle={{
+                ...styles.locationsList,
+              }}
             />
           </View>
         ))}
       </ScrollView>
 
-      {/* Modal for Location Details */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -148,9 +143,31 @@ export default function LocationsPage() {
             <Text style={styles.modalCoordinates}>
               Coordinates: {selectedLocation?.coordinates}
             </Text>
-            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
+
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 10,
+              }}
+            >
+              <TouchableOpacity
+                style={styles.directionButton}
+                onPress={() => {
+                  if (selectedLocation?.googleLink) {
+                    Linking.openURL(selectedLocation.googleLink).catch((err) =>
+                      console.error("Error opening Google Maps:", err)
+                    );
+                  }
+                }}
+              >
+                <Text style={styles.directionButtonText}>Get Directions</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -162,6 +179,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
+  },
+  imageContainer: {
+    position: "relative",
+    marginBottom: 10,
+  },
+  locationImage: {
+    width: "100%",
+    height: 120,
+    borderRadius: 8,
+  },
+  ratingOverlay: {
+    position: "absolute",
+    right: 5,
+    bottom: 5,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingVertical: 5,
+    paddingBottom: 7,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  ratingText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 14,
   },
   header: {
     fontSize: 24,
@@ -184,6 +225,7 @@ const styles = StyleSheet.create({
   },
   locationsList: {
     paddingHorizontal: 10,
+    paddingBottom: 5,
   },
   locationCard: {
     backgroundColor: "#FFF",
@@ -196,12 +238,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  locationImage: {
-    width: "100%",
-    height: 120,
-    borderRadius: 8,
-    marginBottom: 10,
   },
   locationName: {
     fontSize: 16,
@@ -218,6 +254,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  directionButton: {
+    width: "48%",
+    marginTop: 10,
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  directionButtonText: {
+    color: "#FFF",
+    fontWeight: "bold",
   },
   modalContent: {
     backgroundColor: "#FFF",
@@ -252,6 +300,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   closeButton: {
+    width: "48%",
     marginTop: 10,
     backgroundColor: "#FF7F50",
     padding: 10,
