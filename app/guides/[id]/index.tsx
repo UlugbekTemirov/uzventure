@@ -24,7 +24,6 @@ import {
 import { db } from "@/config/firebaseConfig";
 import { useLocalSearchParams } from "expo-router";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-// import {format} from 'date-fns'
 
 export default function GuideDetailPage() {
   const { id }: any = useLocalSearchParams();
@@ -50,8 +49,7 @@ export default function GuideDetailPage() {
   useEffect(() => {
     async function loadGuides() {
       setLoading(true);
-      const data = await fetchGuideByField();
-      // setGuide(data);
+      await fetchGuideByField();
       setLoading(false);
     }
     loadGuides();
@@ -83,16 +81,19 @@ export default function GuideDetailPage() {
     return <Text>Loading...</Text>;
   }
 
+  if (!guide) {
+    return <Text>Guide not found</Text>;
+  }
+
   console.log("guide details:", guide);
 
   return (
     <ParallaxScrollView
       headerImage={
-        <Image source={{ uri: guide.avatar }} style={styles.headerImage} />
+        <Image source={{ uri: guide?.avatar }} style={styles.headerImage} />
       }
       headerBackgroundColor={{ light: "#F5F5F5", dark: "#1D1D1D" }}
     >
-      {/* Guide Information */}
       <View style={styles.profileSection}>
   <Text style={styles.guideTitle}>
     {guide?.name}{" "}
@@ -121,7 +122,6 @@ export default function GuideDetailPage() {
     {guide?.email}
   </Text>
 
-  {/* Social Media Section */}
   <View style={styles.socialMediaContainer}>
     {guide?.socialMedia?.telegram && (
       <TouchableOpacity
@@ -158,21 +158,18 @@ export default function GuideDetailPage() {
   </View>
 </View>
 
-
-      {/* About Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
-        <Text style={styles.text}>{guide.bio}</Text>
+        <Text style={styles.text}>{guide?.bio}</Text>
       </View>
 
-      {/* Cars Section */}
       {guide?.cars?.length > 0 && (
         <View style={styles.section}>
         <Text style={styles.sectionTitle}>Cars</Text>
         <FlatList
           data={guide.cars}
           horizontal
-          keyExtractor={(item) => item.id}
+          keyExtractor={(_, index) => index.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.carCard}
@@ -190,7 +187,6 @@ export default function GuideDetailPage() {
           transparent={true}
           animationType="slide"
           onRequestClose={closeModal}
-          // close when user clicks outside the modal
           onDismiss={closeModal}
         >
           <View style={styles.modalContainer}>
@@ -218,10 +214,9 @@ export default function GuideDetailPage() {
       </View>
       )}
 
-      {/* Services Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Services</Text>
-        {guide.services?.map((service: any, index: any) => (
+        {guide?.services?.map((service: any, index: any) => (
           <View key={index} style={styles.serviceRow}>
             <Ionicons
               name="checkmark-circle-outline"
@@ -233,10 +228,9 @@ export default function GuideDetailPage() {
         ))}
       </View>
 
-      {/* Languages Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Languages</Text>
-        {guide.languages?.map((language: any, index: any) => (
+        {guide?.languages?.map((language: any, index: any) => (
           <View key={index} style={styles.languageRow}>
             <Ionicons
               style={{ marginTop: 3 }}
@@ -251,60 +245,59 @@ export default function GuideDetailPage() {
         ))}
       </View>
 
-      {/* Reviews Section */}
-      {
-        guide.reviews?.length > 0 && (<View style={{ marginTop: 20 }}>
-          <Text style={styles.sectionTitle}>Reviews</Text>
-          <ScrollView
-            style={{ paddingVertical: 10 }}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            {guide.reviews?.map((review: any, index: any) => (
-              <View key={index} style={styles.reviewCard}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Image
-                  source={{ uri: review.avatar }}
-                  style={styles.reviewerAvatar}
-                />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.reviewerName}>{review.name}</Text>
-                  <Text style={styles.reviewDate}>{review.date}</Text>
-                  <View style={styles.starContainer}>
-                    {Array.from({ length: 5 }).map((_, i) => {
-                      if (i < Math.floor(review.rating)) {
-                        return (
-                          <Ionicons key={i} name="star" size={16} color="gold" />
-                        );
-                      } else if (i < Math.ceil(review.rating)) {
-                        return (
-                          <Ionicons
-                            key={i}
-                            name="star-half"
-                            size={16}
-                            color="gold"
-                          />
-                        );
-                      } else {
-                        return (
-                          <Ionicons
-                            key={i}
-                            name="star-outline"
-                            size={16}
-                            color="gold"
-                          />
-                        );
-                      }
-                    })}
-                  </View>
-                </View>
+      {guide?.reviews?.length > 0 && (
+  <View style={{ marginTop: 20 }}>
+    <Text style={styles.sectionTitle}>Reviews</Text>
+    <ScrollView
+      style={{ paddingVertical: 10 }}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    >
+      {guide?.reviews?.map((review: any, index: any) => (
+        <View key={review.id || index} style={styles.reviewCard}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Image
+              source={{ uri: review.avatar }}
+              style={styles.reviewerAvatar}
+            />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.reviewerName}>{review.name}</Text>
+              <Text style={styles.reviewDate}>{review.date}</Text>
+              <View style={styles.starContainer}>
+                {Array.from({ length: 5 }).map((_, i) => {
+                  if (i < Math.floor(review.rating)) {
+                    return (
+                      <Ionicons key={i} name="star" size={16} color="gold" />
+                    );
+                  } else if (i < Math.ceil(review.rating)) {
+                    return (
+                      <Ionicons
+                        key={i}
+                        name="star-half"
+                        size={16}
+                        color="gold"
+                      />
+                    );
+                  } else {
+                    return (
+                      <Ionicons
+                        key={i}
+                        name="star-outline"
+                        size={16}
+                        color="gold"
+                      />
+                    );
+                  }
+                })}
               </View>
-                  <Text style={styles.reviewText}>{review.comment}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>)
-      }
+            </View>
+          </View>
+          <Text style={styles.reviewText}>{review.comment}</Text>
+        </View>
+      ))}
+    </ScrollView>
+  </View>
+)}
     </ParallaxScrollView>
   );
 }
