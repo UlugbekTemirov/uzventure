@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
   ActivityIndicator,
+  Button,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -25,6 +26,7 @@ import {
 import { db } from "@/config/firebaseConfig";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { openInbox } from "react-native-email-link";
 
 export default function GuideDetailPage() {
   const { id }: any = useLocalSearchParams();
@@ -77,6 +79,10 @@ export default function GuideDetailPage() {
     Linking.openURL(url).catch((err) =>
       console.error("An error occurred", err)
     );
+  };
+
+  const handleEmailPress = () => {    
+    openInbox();
   };
 
   if (loading) {
@@ -134,10 +140,15 @@ export default function GuideDetailPage() {
             <Text style={styles.bookText}>Book Now</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.buttonsSubText}>
-          "Book Now" button will send booking letter to guides email:{" "}
-          {guide?.email}
-        </Text>
+        <TouchableOpacity
+          onPress={handleEmailPress}
+          style={styles.buttonsSubText}
+        >
+          <Text>
+            "Book Now" button will send booking letter to guides email:{" "}
+            {guide?.email}
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.socialMediaContainer}>
           {guide?.socialMedia?.telegram && (

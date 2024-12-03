@@ -22,7 +22,8 @@ export default function LocationsPage() {
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isModalVisible, setModalVisible] = useState(false);
 
-  const id = route?.params?.id || null
+  // @ts-ignore
+  const id = (route?.params?.id as any) || null;
 
   useEffect(() => {
     if (id && districts.length > 0) {
