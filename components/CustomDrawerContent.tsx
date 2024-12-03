@@ -2,14 +2,44 @@ import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import { Image, Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { auth } from "@/config/firebaseConfig";
+import { auth, db } from "@/config/firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
-export default function CustomDrawerContent({ user, ...props }: any) {
+export default function CustomDrawerContent({ ...props }: any) {
   const router = useRouter();
   const { bottom } = useSafeAreaInsets();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUser = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUser(userDoc.data());
+        } else {
+          console.warn("User data not found in Firestore.");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    const initialize = async () => {
+      await fetchUser();
+      setLoading(false);
+    };
+    initialize();
+  }, []);
+
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("userId");
@@ -24,6 +54,8 @@ export default function CustomDrawerContent({ user, ...props }: any) {
       return "News";
     } else if (route.name === "profile") {
       return "Profile";
+    } else if (route.name === "(auth)/login") {
+      return "Login";
     }
     return route.name;
   };
@@ -35,6 +67,8 @@ export default function CustomDrawerContent({ user, ...props }: any) {
       return "newspaper";
     } else if (route.name === "profile") {
       return "person-circle-outline";
+    } else if (route.name === "(auth)/login") {
+      return "log-in";
     }
     return route.name;
   };
@@ -60,7 +94,7 @@ export default function CustomDrawerContent({ user, ...props }: any) {
 
         {props.state.routes
           .filter((route: any) =>
-            ["(tabs)", "news", "profile"].includes(route.name)
+            ["(tabs)", "news", "profile", "(auth)/login"].includes(route.name)
           )
           .map((route: any, index: any) => (
             <TouchableOpacity

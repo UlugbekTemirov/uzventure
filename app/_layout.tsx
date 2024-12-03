@@ -37,32 +37,22 @@ export default function RootLayout() {
         } else {
           console.warn("User data not found in Firestore.");
         }
+      } else {
+        console.warn("User ID not found in AsyncStorage.");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
 
-  const checkUserSession = async () => {
-    try {
-      const userId = await AsyncStorage.getItem("userId");
-      // if (!userId) {
-      //   router.push("/(auth)/login");
-      // }
-    } catch (error) {
-      console.error("Error checking user session:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     const initialize = async () => {
       await fetchUser();
-      await checkUserSession();
+      setLoading(false);
     };
     initialize();
   }, []);
+
 
   if (loading) {
     return (
@@ -71,6 +61,7 @@ export default function RootLayout() {
       </View>
     );
   }
+
 
   return (
     <ThemeProvider value={DefaultTheme}>

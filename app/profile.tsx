@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,17 +10,48 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/config/firebaseConfig";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  console.log(user)
+  
+  const fetchUser = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUser(userDoc.data());
+        } else {
+          console.warn("User data not found in Firestore.");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    const initialize = async () => {
+      await fetchUser();
+    };
+    initialize();
+  }, []);
+
+
   const menuItems = [
-    {
-      id: 1,
-      title: "Profile Details",
-      subtitle: "Manage your profile details",
-      icon: "person-outline",
-      route: "ProfileDetails",
-    },
+    // {
+    //   id: 1,
+    //   title: "Profile Details",
+    //   subtitle: "Manage your profile details",
+    //   icon: "person-outline",
+    //   route: "ProfileDetails",
+    // },
     // {
     //   id: 2,
     //   title: "Add Nominee",
@@ -72,8 +103,8 @@ export default function ProfileScreen() {
           style={styles.profileImage}
         />
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>Ulugbek Temirov</Text>
-          <Text style={styles.lastLogin}>Tourist</Text>
+          <Text style={styles.profileName}>{user?.name || 'Guest'}</Text>
+          <Text style={styles.lastLogin}>{user?.userType || "Tourist"}</Text>
         </View>
       </View>
 

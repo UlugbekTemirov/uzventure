@@ -26,7 +26,6 @@ export default function LoginScreen() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       Alert.alert('Success', `Welcome back, ${userCredential.user.email}!`);
-      console.log('User logged in:', userCredential.user.uid);
       await AsyncStorage.setItem("userId", userCredential.user.uid);
       router.push('/');
     } catch (error) {

@@ -14,9 +14,10 @@ import { Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemedText } from "@/components/ThemedText";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,6 +26,25 @@ export default function HomePage() {
   const [locations, setLocations] = useState<any>([]);
   const [guides, setGuides] = useState<any>([]);
   const [categories, setCategories] = useState<any>([]);
+  const [user, setUser] = useState<any>('initial');
+
+  
+  const fetchUser = async () => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        const userDocRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUser(userDoc.data());
+        } else {
+          console.warn("User data not found in Firestore.");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   const fetchGuides = async () => {
     try {
@@ -87,6 +107,10 @@ export default function HomePage() {
       setCategories(data);
       setLoading(false);
     }
+    const initialize = async () => {
+      await fetchUser();
+    };
+    initialize();
     loadLocations();
     loadGuides();
     loadCategories();
