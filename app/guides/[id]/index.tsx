@@ -26,7 +26,6 @@ import {
 import { db } from "@/config/firebaseConfig";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { openInbox } from "react-native-email-link";
 
 export default function GuideDetailPage() {
   const { id }: any = useLocalSearchParams();
@@ -81,8 +80,31 @@ export default function GuideDetailPage() {
     );
   };
 
-  const handleEmailPress = () => {    
-    openInbox();
+  const handleEmailPress = () => {
+    const email = guide.email;
+
+    if (!email) {
+      return;
+    }
+
+    const subject = "Booking Request for Your Travel Guide Services";
+    const body = `Dear ${guide.name},
+
+I am interested in hiring you as a travel guide for my upcoming trip. Please let me know your availability and any further details required to confirm the booking.
+
+Looking forward to your response!
+
+Best regards,
+
+[Anonymous Tourist]`;
+
+    const url = `mailto:${email}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(body)}`;
+
+    Linking.openURL(url).catch((err) =>
+      console.error("An error occurred", err)
+    );
   };
 
   if (loading) {
@@ -136,19 +158,19 @@ export default function GuideDetailPage() {
               Contact
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.bookButton}>
+          <TouchableOpacity
+            onPress={handleEmailPress}
+            style={styles.bookButton}
+          >
             <Text style={styles.bookText}>Book Now</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={handleEmailPress}
-          style={styles.buttonsSubText}
-        >
+        <View style={styles.buttonsSubText}>
           <Text>
             "Book Now" button will send booking letter to guides email:{" "}
             {guide?.email}
           </Text>
-        </TouchableOpacity>
+        </View>
 
         <View style={styles.socialMediaContainer}>
           {guide?.socialMedia?.telegram && (
