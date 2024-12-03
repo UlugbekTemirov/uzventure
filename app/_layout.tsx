@@ -6,7 +6,7 @@ import { Drawer } from "expo-router/drawer";
 import "react-native-gesture-handler";
 import CustomDrawerContent from "@/components/CustomDrawerContent";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { ActivityIndicator, LogBox, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -46,9 +46,9 @@ export default function RootLayout() {
   const checkUserSession = async () => {
     try {
       const userId = await AsyncStorage.getItem("userId");
-      if (!userId) {
-        router.push("/(auth)/login");
-      }
+      // if (!userId) {
+      //   router.push("/(auth)/login");
+      // }
     } catch (error) {
       console.error("Error checking user session:", error);
     } finally {

@@ -12,17 +12,48 @@ import {
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { Linking } from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 export default function LocationsPage() {
+  const route = useRoute();
+
   const [districts, setDistricts] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+
+  const id = route?.params?.id || null
+
+  useEffect(() => {
+    if (id && districts.length > 0) {
+      const modalLocation = locations.find(
+        (district: any) => district.id == id
+      ) as any;
+      const location = {
+        id: modalLocation.id,
+        name: modalLocation.name,
+        description: modalLocation.info,
+        image: modalLocation.image,
+        details: modalLocation.info,
+        coordinates: `${modalLocation.geoLocation.latitude}° N, ${modalLocation.geoLocation.longitude}° E`,
+        googleLink: modalLocation.googleLocation,
+      };
+
+      setSelectedLocation(location);
+      setModalVisible(true);
+    }
+  }, [id, districts]);
 
   useEffect(() => {
     const fetchLocations = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "locations"));
         const fetchedDistricts: any = {};
+        const locs = [] as any;
+        querySnapshot.forEach((doc) => {
+          locs.push({ id: doc.id, ...doc.data() });
+        });
+        setLocations(locs);
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();

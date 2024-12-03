@@ -9,6 +9,7 @@ import {
   Linking,
   ScrollView,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
@@ -22,11 +23,12 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
-import { useLocalSearchParams } from "expo-router";
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function GuideDetailPage() {
   const { id }: any = useLocalSearchParams();
+  const router = useRouter();
 
   const [selectedCar, setSelectedCar] = useState<any>(null);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -78,85 +80,100 @@ export default function GuideDetailPage() {
   };
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#FF7F50" />
+      </View>
+    );
   }
 
   if (!guide) {
     return <Text>Guide not found</Text>;
   }
 
-  console.log("guide details:", guide);
-
   return (
     <ParallaxScrollView
       headerImage={
-        <Image source={{ uri: guide?.avatar }} style={styles.headerImage} />
+        <View
+          style={{
+            position: "relative",
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.goBackButton}
+          >
+            <Ionicons name="arrow-back" size={18} color="black" />
+            <Text style={styles.goBackButtonText}>Go Back</Text>
+          </TouchableOpacity>
+          <Image source={{ uri: guide?.avatar }} style={styles.headerImage} />
+        </View>
       }
       headerBackgroundColor={{ light: "#F5F5F5", dark: "#1D1D1D" }}
     >
       <View style={styles.profileSection}>
-  <Text style={styles.guideTitle}>
-    {guide?.name}{" "}
-    {guide?.isVerified && (
-      <MaterialIcons name="verified" size={16} color="green" />
-    )}
-  </Text>
-  <Text style={styles.age}>{guide?.age} years old</Text>
-  <Text style={styles.subText}>{guide?.location}</Text>
-  <Text style={styles.subText}>{guide?.phoneNumber}</Text>
-  <Text style={styles.subText}>
-    ${guide?.price}/hour • {guide?.experience} of experience
-  </Text>
-  <View style={styles.buttonContainer}>
-    <TouchableOpacity style={styles.contactButton}>
-      <Text style={styles.contactText} onPress={handleContactPress}>
-        Contact
-      </Text>
-    </TouchableOpacity>
-    <TouchableOpacity style={styles.bookButton}>
-      <Text style={styles.bookText}>Book Now</Text>
-    </TouchableOpacity>
-  </View>
-  <Text style={styles.buttonsSubText}>
-    "Book Now" button will send booking letter to guides email:{" "}
-    {guide?.email}
-  </Text>
+        <Text style={styles.guideTitle}>
+          {guide?.name}{" "}
+          {guide?.isVerified && (
+            <MaterialIcons name="verified" size={16} color="green" />
+          )}
+        </Text>
+        <Text style={styles.age}>{guide?.age} years old</Text>
+        <Text style={styles.subText}>{guide?.location}</Text>
+        <Text style={styles.subText}>{guide?.phoneNumber}</Text>
+        <Text style={styles.subText}>
+          ${guide?.price}/hour • {guide?.experience} of experience
+        </Text>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.contactButton}>
+            <Text style={styles.contactText} onPress={handleContactPress}>
+              Contact
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bookButton}>
+            <Text style={styles.bookText}>Book Now</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.buttonsSubText}>
+          "Book Now" button will send booking letter to guides email:{" "}
+          {guide?.email}
+        </Text>
 
-  <View style={styles.socialMediaContainer}>
-    {guide?.socialMedia?.telegram && (
-      <TouchableOpacity
-        onPress={() => Linking.openURL(guide.socialMedia.telegram)}
-        style={styles.iconButton}
-      >
-        <FontAwesome name="telegram" size={24} color="#0088cc" />
-      </TouchableOpacity>
-    )}
-    {guide?.socialMedia?.instagram && (
-      <TouchableOpacity
-        onPress={() => Linking.openURL(guide.socialMedia.instagram)}
-        style={styles.iconButton}
-      >
-        <Ionicons name="logo-instagram" size={24} color="#C13584" />
-      </TouchableOpacity>
-    )}
-    {guide?.socialMedia?.youtube && (
-      <TouchableOpacity
-        onPress={() => Linking.openURL(guide.socialMedia.youtube)}
-        style={styles.iconButton}
-      >
-        <Ionicons name="logo-youtube" size={24} color="#FF0000" />
-      </TouchableOpacity>
-    )}
-    {guide?.socialMedia?.linkedin && (
-      <TouchableOpacity
-        onPress={() => Linking.openURL(guide.socialMedia.linkedin)}
-        style={styles.iconButton}
-      >
-        <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
-      </TouchableOpacity>
-    )}
-  </View>
-</View>
+        <View style={styles.socialMediaContainer}>
+          {guide?.socialMedia?.telegram && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(guide.socialMedia.telegram)}
+              style={styles.iconButton}
+            >
+              <FontAwesome name="telegram" size={24} color="#0088cc" />
+            </TouchableOpacity>
+          )}
+          {guide?.socialMedia?.instagram && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(guide.socialMedia.instagram)}
+              style={styles.iconButton}
+            >
+              <Ionicons name="logo-instagram" size={24} color="#C13584" />
+            </TouchableOpacity>
+          )}
+          {guide?.socialMedia?.youtube && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(guide.socialMedia.youtube)}
+              style={styles.iconButton}
+            >
+              <Ionicons name="logo-youtube" size={24} color="#FF0000" />
+            </TouchableOpacity>
+          )}
+          {guide?.socialMedia?.linkedin && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(guide.socialMedia.linkedin)}
+              style={styles.iconButton}
+            >
+              <Ionicons name="logo-linkedin" size={24} color="#0077b5" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
@@ -165,53 +182,51 @@ export default function GuideDetailPage() {
 
       {guide?.cars?.length > 0 && (
         <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Cars</Text>
-        <FlatList
-          data={guide.cars}
-          horizontal
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.carCard}
-              onPress={() => handleCarPress(item)}
-            >
-              <Image source={{ uri: item.image }} style={styles.carImage} />
-              <Text style={styles.carModel}>{item.model}</Text>
-            </TouchableOpacity>
-          )}
-          showsHorizontalScrollIndicator={false}
-        />
-
-        <Modal
-          visible={isModalVisible}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={closeModal}
-          onDismiss={closeModal}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Image
-                source={{ uri: selectedCar?.image }}
-                style={styles.modalImage}
-              />
-              <Text style={styles.modalTitle}>{selectedCar?.model}</Text>
-              <Text>
-                Year: {selectedCar?.year}
-              </Text>
-              <Text>
-                Features: {selectedCar?.features.join(", ")}
-              </Text>
-              <Text>
-                Price: ${selectedCar?.price} / km
-              </Text>
-              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-                <Text style={styles.closeButtonText}>Close</Text>
+          <Text style={styles.sectionTitle}>Cars</Text>
+          <FlatList
+            data={guide.cars}
+            horizontal
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.carCard}
+                onPress={() => handleCarPress(item)}
+              >
+                <Image source={{ uri: item.image }} style={styles.carImage} />
+                <Text style={styles.carModel}>{item.model}</Text>
               </TouchableOpacity>
+            )}
+            showsHorizontalScrollIndicator={false}
+          />
+
+          <Modal
+            visible={isModalVisible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={closeModal}
+            onDismiss={closeModal}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Image
+                  source={{ uri: selectedCar?.image }}
+                  style={styles.modalImage}
+                />
+                <Text style={styles.modalTitle}>{selectedCar?.model}</Text>
+                <Text>Year: {selectedCar?.year}</Text>
+                <Text>Features: {selectedCar?.features.join(", ")}</Text>
+                <Text>Price: ${selectedCar?.price} / km</Text>
+                <Text>Fuel type: Methane gas</Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={closeModal}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Modal>
-      </View>
+          </Modal>
+        </View>
       )}
 
       <View style={styles.section}>
@@ -246,63 +261,99 @@ export default function GuideDetailPage() {
       </View>
 
       {guide?.reviews?.length > 0 && (
-  <View style={{ marginTop: 20 }}>
-    <Text style={styles.sectionTitle}>Reviews</Text>
-    <ScrollView
-      style={{ paddingVertical: 10 }}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-    >
-      {guide?.reviews?.map((review: any, index: any) => (
-        <View key={review.id || index} style={styles.reviewCard}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Image
-              source={{ uri: review.avatar }}
-              style={styles.reviewerAvatar}
-            />
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.reviewerName}>{review.name}</Text>
-              <Text style={styles.reviewDate}>{review.date}</Text>
-              <View style={styles.starContainer}>
-                {Array.from({ length: 5 }).map((_, i) => {
-                  if (i < Math.floor(review.rating)) {
-                    return (
-                      <Ionicons key={i} name="star" size={16} color="gold" />
-                    );
-                  } else if (i < Math.ceil(review.rating)) {
-                    return (
-                      <Ionicons
-                        key={i}
-                        name="star-half"
-                        size={16}
-                        color="gold"
-                      />
-                    );
-                  } else {
-                    return (
-                      <Ionicons
-                        key={i}
-                        name="star-outline"
-                        size={16}
-                        color="gold"
-                      />
-                    );
-                  }
-                })}
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.sectionTitle}>Reviews</Text>
+          <ScrollView
+            style={{ paddingVertical: 10 }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {guide?.reviews?.map((review: any, index: any) => (
+              <View key={review.id || index} style={styles.reviewCard}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
+                >
+                  <Image
+                    source={{ uri: review.avatar }}
+                    style={styles.reviewerAvatar}
+                  />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={styles.reviewerName}>{review.name}</Text>
+                    <Text style={styles.reviewDate}>{review.date}</Text>
+                    <View style={styles.starContainer}>
+                      {Array.from({ length: 5 }).map((_, i) => {
+                        if (i < Math.floor(review.rating)) {
+                          return (
+                            <Ionicons
+                              key={i}
+                              name="star"
+                              size={16}
+                              color="gold"
+                            />
+                          );
+                        } else if (i < Math.ceil(review.rating)) {
+                          return (
+                            <Ionicons
+                              key={i}
+                              name="star-half"
+                              size={16}
+                              color="gold"
+                            />
+                          );
+                        } else {
+                          return (
+                            <Ionicons
+                              key={i}
+                              name="star-outline"
+                              size={16}
+                              color="gold"
+                            />
+                          );
+                        }
+                      })}
+                    </View>
+                  </View>
+                </View>
+                <Text style={styles.reviewText}>{review.comment}</Text>
               </View>
-            </View>
-          </View>
-          <Text style={styles.reviewText}>{review.comment}</Text>
+            ))}
+          </ScrollView>
         </View>
-      ))}
-    </ScrollView>
-  </View>
-)}
+      )}
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  goBackButton: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    zIndex: 1,
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  goBackButtonText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
   headerImage: {
     width: "100%",
     height: "100%",
@@ -328,6 +379,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   phoneText: {
     fontSize: 16,
@@ -473,7 +529,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     lineHeight: 18,
-    marginTop: 5
+    marginTop: 5,
   },
   guideTitle: {
     fontSize: 24,

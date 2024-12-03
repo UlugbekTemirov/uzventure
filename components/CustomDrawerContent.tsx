@@ -115,9 +115,6 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
   },
-  // profileTextContainer: {
-  //   marginRight: 20,
-  // },
   profileName: {
     fontSize: 20,
     fontWeight: "bold",

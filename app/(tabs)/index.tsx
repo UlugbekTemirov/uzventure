@@ -1,47 +1,105 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, TextInput, ScrollView, FlatList, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  FlatList,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { LinearGradient } from "expo-linear-gradient";
+import { ThemedText } from "@/components/ThemedText";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/config/firebaseConfig";
+import { useRouter } from "expo-router";
 
 export default function HomePage() {
-  const categories = [{
-    id: '1',
-    name: 'Historical',
-    image: "https://minzifatravel.com/wp-content/uploads/2021/04/bukhara.jpg",
-  }, {
-    id: '3',
-    name: 'Modern',
-    image: 'https://trvlland.com/wp-content/uploads/2022/09/uzbekistan_tashkent-3.jpg'
-  },
-  {
-    id: '4',
-    name: 'Desert',
-    image: 'https://uzbekistan.travel/storage/app/media/uploaded-files/11.jpg'
-  },
-  {
-    id: '5',
-    name: 'Mountain',
-    image: "https://uzbekistan.travel/storage/app/media/uploaded-files/Hissar%20Mountains.png"
-  },
-  {
-    id: '6',
-    name: 'Valley',
-    image: "https://media.tacdn.com/media/attractions-splice-spp-674x446/0a/53/e7/0a.jpg"
-  },
-  ];
-  const guides = [
-    { id: '1', name: 'John Doe', rating: 4.8, verified: true, price: '$50/hour' },
-    { id: '2', name: 'Jane Smith', rating: 4.5, verified: false, price: '$40/hour' },
-    { id: '3', name: 'Alex Johnson', rating: 4.9, verified: true, price: '$60/hour' },
-  ];
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState<any>([]);
+  const [guides, setGuides] = useState<any>([]);
+  const [categories, setCategories] = useState<any>([]);
+
+  const fetchGuides = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "guides"));
+      const guides = [] as any;
+      querySnapshot.forEach((doc) => {
+        guides.push({ id: doc.id, ...doc.data() });
+      });
+      return guides;
+    } catch (error) {
+      console.error("Error fetching guides:", error);
+      return [];
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "locations"));
+      const locations = [] as any;
+      querySnapshot.forEach((doc) => {
+        locations.push({ id: doc.id, ...doc.data() });
+      });
+      return locations;
+    } catch (error) {
+      console.error("Error fetching guides:", error);
+      return [];
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "categories"));
+      const categories = [] as any;
+      querySnapshot.forEach((doc) => {
+        categories.push({ id: doc.id, ...doc.data() });
+      });
+      return categories;
+    } catch (error) {
+      console.error("Error fetching guides:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    async function loadLocations() {
+      setLoading(true);
+      const data = await fetchLocations();
+      setLocations(data);
+      setLoading(false);
+    }
+    async function loadGuides() {
+      setLoading(true);
+      const data = await fetchGuides();
+      setGuides(data);
+      setLoading(false);
+    }
+    async function loadCategories() {
+      setLoading(true);
+      const data = await fetchCategories();
+      setCategories(data);
+      setLoading(false);
+    }
+    loadLocations();
+    loadGuides();
+    loadCategories();
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
         {/* Main Header */}
-        <Text style={styles.headerText}>Explore the beauty of <Text style={styles.textUzbekistan}>Uzbekistan </Text></Text>
+        <Text style={styles.headerText}>
+          Explore the beauty of{" "}
+          <Text style={styles.textUzbekistan}>Uzbekistan </Text>
+        </Text>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -62,11 +120,14 @@ export default function HomePage() {
             contentContainerStyle={{ paddingVertical: 10 }}
             renderItem={({ item }) => (
               <LinearGradient
-                colors={['#fff', '#fff']}
+                colors={["#fff", "#fff"]}
                 style={styles.categoryButton}
               >
                 <View style={styles.categoryContent}>
-                  <Image source={{ uri: item.image }} style={styles.categoryImage} />
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.categoryImage}
+                  />
                   <Text style={styles.categoryText}>{item.name}</Text>
                 </View>
               </LinearGradient>
@@ -77,55 +138,105 @@ export default function HomePage() {
         {/* Travel Places Section */}
         <View style={styles.travelPlacesHeader}>
           <Text style={styles.sectionTitle}>Top Places</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/historical")}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
         <View>
-          <FlatList
-            data={[1, 2, 3]} // Replace this array with actual travel places data
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.toString()}
-            contentContainerStyle={styles.placesContainer}
-            renderItem={({ item }) => (
-              <View style={styles.placeCard}>
-                <Image source={{ uri: 'https://via.placeholder.com/150' }} style={styles.placeImage} />
-                <Text style={styles.placeTitle}>Place Name</Text>
-                <Text style={styles.placeSubtitle}>Location, Country</Text>
-              </View>
-            )}
-          />
+          {loading ? (
+            <View
+              style={{
+                width: 150,
+                height: 200,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color="#FF7F50" />
+            </View>
+          ) : (
+            <FlatList
+              data={locations.slice(0, 4)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.placesContainer}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => router.push(`/historical?id=${item.id || ""}`)}
+                  style={styles.placeCard}
+                >
+                  <Image
+                    source={{
+                      uri: item?.image || "https://via.placeholder.com/150",
+                    }}
+                    style={styles.placeImage}
+                  />
+                  <Text style={styles.placeTitle}>
+                    {item?.name} | {item?.region?.name}
+                  </Text>
+                  <Text style={styles.placeSubtitle}>
+                    {item?.info?.slice(0, 34) + "..."}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
         </View>
 
         {/* Top Guides Section */}
         <View style={styles.travelPlacesHeader}>
           <Text style={styles.sectionTitle}>Top Guides</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/guides")}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
         <View>
           <FlatList
-            data={guides}
+            data={guides.slice(0, 4)}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.guidesContainer}
             renderItem={({ item }) => (
               <View style={styles.guideCard}>
-                <Image source={{ uri: 'https://avatar.iran.liara.run/public/boy' }} style={styles.guideImage} />
+                <Image
+                  source={{
+                    uri:
+                      item.avatar || "https://avatar.iran.liara.run/public/boy",
+                  }}
+                  style={styles.guideImage}
+                />
                 <View style={styles.guideInfo}>
-                  
-                  <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', flexShrink: 1 }}>
-                  <ThemedText style={styles.guideName}>{item.name}</ThemedText>
-                  <MaterialIcons name="verified" size={14} color="green" />
-</View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', flexShrink: 1 }}>
-  <ThemedText style={styles.guideRating}>{item.rating} </ThemedText>
-  <Ionicons name="star" size={12} color="gold" />
-</View>
-                  <ThemedText style={styles.guidePrice}>{item.price}</ThemedText>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      alignSelf: "flex-start",
+                      flexShrink: 1,
+                    }}
+                  >
+                    <ThemedText style={styles.guideName}>
+                      {item.name}
+                    </ThemedText>
+                    <MaterialIcons name="verified" size={14} color="green" />
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      alignSelf: "flex-start",
+                      flexShrink: 1,
+                    }}
+                  >
+                    <ThemedText style={styles.guideRating}>
+                      {String(item.rating)}
+                    </ThemedText>
+                    <Ionicons name="star" size={12} color="gold" />
+                  </View>
+                  <ThemedText style={styles.guidePrice}>
+                    ${item.price} / hour
+                  </ThemedText>
                 </View>
               </View>
             )}
@@ -140,7 +251,7 @@ export default function HomePage() {
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingBottom: 90,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   container: {
     flex: 1,
@@ -151,18 +262,18 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   textUzbekistan: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 45,
-    fontStyle: 'italic',
-    color: '#FF7F50',
+    fontStyle: "italic",
+    color: "#FF7F50",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -173,7 +284,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   searchIconContainer: {
-    backgroundColor: '#FF7F50',
+    backgroundColor: "#FF7F50",
     padding: 10,
     borderRadius: 8,
   },
@@ -182,7 +293,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   categoriesContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   categoryButton: {
     borderRadius: 20,
@@ -192,11 +303,11 @@ const styles = StyleSheet.create({
     minWidth: 140,
     height: 60,
     borderWidth: 1,
-    borderColor: '#FF7F50',
+    borderColor: "#FF7F50",
   },
   categoryContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   categoryImage: {
     width: 40,
@@ -205,51 +316,51 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   categoryText: {
-    color: 'black',
+    color: "black",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   travelPlacesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   viewAllText: {
-    color: '#FF7F50',
+    color: "#FF7F50",
   },
   placesContainer: {
     paddingVertical: 10,
   },
   placeCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 10,
     marginRight: 15,
     width: 150,
   },
   placeImage: {
-    width: '100%',
+    width: "100%",
     height: 100,
     borderRadius: 12,
   },
   placeTitle: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 5,
   },
   placeSubtitle: {
-    color: 'gray',
+    color: "gray",
   },
   guidesContainer: {
     paddingVertical: 10,
   },
   guideCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 10,
     marginRight: 15,
-    width: 200,
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: 240,
+    flexDirection: "row",
+    alignItems: "center",
   },
   guideImage: {
     width: 50,
@@ -261,26 +372,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   guideName: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 15,
     marginRight: 5,
   },
   guideRating: {
-    color: 'gray',
+    color: "gray",
     fontSize: 14,
     marginRight: 2,
   },
   verifiedBadge: {
-    backgroundColor: '#4CAF50',
-    color: 'white',
+    backgroundColor: "#4CAF50",
+    color: "white",
     paddingHorizontal: 5,
     borderRadius: 5,
     fontSize: 12,
     marginTop: 2,
   },
   guidePrice: {
-    color: '#FF7F50',
-    fontWeight: '900',
+    color: "#FF7F50",
+    fontWeight: "900",
     fontSize: 13,
   },
 });
