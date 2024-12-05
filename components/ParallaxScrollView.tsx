@@ -10,7 +10,7 @@ import Animated, {
 import { ThemedView } from '@/components/ThemedView';
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
 
-const HEADER_HEIGHT = 350;
+const HEADER_HEIGHT = 300;
 
 type Props = PropsWithChildren<{
   headerImage: ReactElement;

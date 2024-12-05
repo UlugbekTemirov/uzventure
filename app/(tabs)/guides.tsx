@@ -14,19 +14,6 @@ import { useRouter } from "expo-router";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 
-// const guides = Array.from({ length: 10 }, (_, index) => ({
-//   id: index.toString(),
-//   name: `Ulugbek Temirov`,
-//   avatar: `https://randomuser.me/api/portraits/men/${index}.jpg`,
-//   isOnline: index % 2 === 0,
-//   isVerified: index % 3 === 0,
-//   rating: (index + 1) / 2,
-//   location: `Bukhara, Uzbekistan`,
-//   languages: ["English", "Spanish", "German"],
-//   price: `$${(index + 1) * 10}`,
-//   reviews: index,
-// }));
-
 const fetchGuides = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, "guides"));

@@ -50,7 +50,7 @@ export default function CustomDrawerContent({ ...props }: any) {
   const renderRouteName = (route: any) => {
     if (route.name === "(tabs)") {
       return "Home";
-    } else if (route.name === "news") {
+    } else if (route.name === "news/index") {
       return "News";
     } else if (route.name === "profile") {
       return "Profile";
@@ -63,7 +63,7 @@ export default function CustomDrawerContent({ ...props }: any) {
   const renderIconName = (route: any) => {
     if (route.name === "(tabs)") {
       return "home";
-    } else if (route.name === "news") {
+    } else if (route.name === "news/index") {
       return "newspaper";
     } else if (route.name === "profile") {
       return "person-circle-outline";
@@ -94,7 +94,7 @@ export default function CustomDrawerContent({ ...props }: any) {
 
         {props.state.routes
           .filter((route: any) =>
-            ["(tabs)", "news", "profile", "(auth)/login"].includes(route.name)
+            ["(tabs)", "news/index", "profile", "(auth)/login"].includes(route.name)
           )
           .map((route: any, index: any) => (
             <TouchableOpacity
