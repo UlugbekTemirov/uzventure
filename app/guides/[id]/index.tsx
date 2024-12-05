@@ -45,7 +45,6 @@ export default function GuideDetailPage() {
         setGuide(doc.data());
       });
     } else {
-      console.log("No matching document found!");
     }
   };
 

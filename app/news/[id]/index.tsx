@@ -35,7 +35,6 @@ export default function NewsDetailsScreen() {
 
   const { id: newsID }: any = useLocalSearchParams();
 
-  console.log(newsID)
 
   const fetchNewsByID = async () => {
     const q = query(collection(db, "news"), where("id", "==", newsID));
@@ -46,7 +45,6 @@ export default function NewsDetailsScreen() {
         setNewsData(doc.data());
       });
     } else {
-      console.log("No matching document found!");
     }
   };
 

@@ -17,7 +17,6 @@ import { db } from "@/config/firebaseConfig";
 export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  console.log(user)
   
   const fetchUser = async () => {
     try {

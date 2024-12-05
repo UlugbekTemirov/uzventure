@@ -32,7 +32,6 @@ export default function RegisterScreen() {
         createdAt: new Date().toISOString(),
       });
   
-      console.log("User registered and saved to Firestore:", userCredential.user.uid);
       router.push("/login");
     } catch (error: any) {
       console.error("Error registering user:", error.message);
