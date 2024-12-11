@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { Colors } from "@/constants/Colors";
+import { useUser } from "@clerk/clerk-expo";
 
 const CustomHeader = ({ title, onHamburgerPress, onProfilePress }: any) => {
   const route = useRoute();

@@ -10,107 +10,52 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/Colors";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/config/firebaseConfig";
+import { useClerk, useUser } from "@clerk/clerk-expo";
+import {format} from 'date-fns'
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  
-  const fetchUser = async () => {
-    try {
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        const userDocRef = doc(db, "users", userId);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUser(userDoc.data());
-        } else {
-          console.warn("User data not found in Firestore.");
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+  const {user} = useUser()
+  const { signOut } = useClerk()
 
-  useEffect(() => {
-    const initialize = async () => {
-      await fetchUser();
-    };
-    initialize();
-  }, []);
-
+  const handleLogout = async () => {
+    signOut({redirectUrl: '/'})
+  }
 
   const menuItems = [
-    // {
-    //   id: 1,
-    //   title: "Profile Details",
-    //   subtitle: "Manage your profile details",
-    //   icon: "person-outline",
-    //   route: "ProfileDetails",
-    // },
-    // {
-    //   id: 2,
-    //   title: "Add Nominee",
-    //   subtitle:
-    //     "Add a third person of your account in case of unexpected event",
-    //   icon: "people-outline",
-    //   route: "AddNominee",
-    // },
-    // {
-    //   id: 3,
-    //   title: "Bank Account",
-    //   subtitle: "Manage all your linked and save bank account",
-    //   icon: "business-outline",
-    //   route: "BankAccount",
-    // },
-    // {
-    //   id: 4,
-    //   title: "Device & Credentials",
-    //   subtitle: "Manage your device credentials",
-    //   icon: "phone-portrait-outline",
-    //   route: "DeviceCredentials",
-    // },
     {
-      id: 5,
-      title: "Delete My Account",
+      id: 1,
+      title: "Logout",
       subtitle: "",
-      icon: "trash-outline",
-      route: "DeleteAccount",
+      icon: "log-out-outline",
+      action: handleLogout
     },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={30} color="#555" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>go back</Text>
-      </View>
 
-      {/* Profile Card */}
       <View style={styles.profileCard}>
         <Image
-          source={{ uri: "https://picsum.photos/200/300" }}
+          source={{ uri: user?.imageUrl || "https://picsum.photos/200/300" }}
           style={styles.profileImage}
         />
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{user?.name || 'Guest'}</Text>
-          <Text style={styles.lastLogin}>{user?.userType || "Tourist"}</Text>
+          <Text style={styles.profileName}>{user?.fullName || 'Guest'}</Text>
+          <Text style={styles.profileEmail}>{user?.emailAddresses[0].emailAddress || "no email"}</Text>
         </View>
       </View>
 
       {/* Menu Items */}
       <View style={styles.menuContainer}>
         {menuItems.map((item) => (
-          <TouchableOpacity key={item.id} style={styles.menuItem}>
+          <TouchableOpacity key={item.id} onPress={item.action} style={styles.menuItem}>
             <View style={styles.menuIconContainer}>
               <Ionicons name={item.icon as any} size={24} color="#666" />
             </View>
@@ -136,6 +81,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   header: {
+    width: 100,
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
@@ -143,39 +89,61 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 16,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 'auto',
+    borderRadius: '50%',
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    backgroundColor: '#fff',
+    padding: 15,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
   },
   profileCard: {
-    flexDirection: "row",
+    display: "flex",
+    flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     padding: 16,
     marginHorizontal: 16,
     borderRadius: 12,
+    borderTopEndRadius: '100%',
+    borderTopStartRadius: '100%',
     backgroundColor: Colors.light.tint,
     marginBottom: 16,
+    height: 160,
+    marginTop: 70
   },
   profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 16,
+    width: 120,
+    height: 120,
+    borderRadius: 200,
+    position: "absolute",
+    top: -55,
+    left: "50%",
+    transform: [{ translateX: -50 }],
   },
   profileInfo: {
     flex: 1,
+    marginTop: 60
   },
   profileName: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "600",
     color: "#fff",
     marginBottom: 4,
+    textAlign: 'center'
   },
-  lastLogin: {
-    fontSize: 14,
+  profileEmail: {
+    fontSize: 16,
     color: "#fff",
     opacity: 0.8,
+    textAlign: 'center'
   },
   menuContainer: {
     backgroundColor: "#fff",

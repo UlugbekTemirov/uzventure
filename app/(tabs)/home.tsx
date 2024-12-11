@@ -17,7 +17,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomePage() {
   const router = useRouter();
@@ -26,25 +25,6 @@ export default function HomePage() {
   const [locations, setLocations] = useState<any>([]);
   const [guides, setGuides] = useState<any>([]);
   const [categories, setCategories] = useState<any>([]);
-  const [user, setUser] = useState<any>('initial');
-
-  
-  const fetchUser = async () => {
-    try {
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        const userDocRef = doc(db, "users", userId);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUser(userDoc.data());
-        } else {
-          console.warn("User data not found in Firestore.");
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
 
   const fetchGuides = async () => {
     try {
@@ -107,10 +87,6 @@ export default function HomePage() {
       setCategories(data);
       setLoading(false);
     }
-    const initialize = async () => {
-      await fetchUser();
-    };
-    initialize();
     loadLocations();
     loadGuides();
     loadCategories();
@@ -162,7 +138,7 @@ export default function HomePage() {
         {/* Travel Places Section */}
         <View style={styles.travelPlacesHeader}>
           <Text style={styles.sectionTitle}>Top Places</Text>
-          <TouchableOpacity onPress={() => router.push("/historical")}>
+          <TouchableOpacity onPress={() => router.push("/locations")}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
@@ -187,7 +163,7 @@ export default function HomePage() {
               contentContainerStyle={styles.placesContainer}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => router.push(`/historical?id=${item.id || ""}`)}
+                  onPress={() => router.push(`/locations?id=${item.id || ""}`)}
                   style={styles.placeCard}
                 >
                   <Image

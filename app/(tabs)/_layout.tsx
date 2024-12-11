@@ -67,7 +67,7 @@ export default function TabLayout() {
       >
         {/* Add your Tabs.Screen components here */}
         <Tabs.Screen
-          name="index"
+          name="home"
           options={{
             title: 'Home',
             tabBarIcon: ({ color }) => <Ionicons size={24} name="home" color={color} />,
@@ -110,7 +110,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="historical"
+          name="locations"
           options={{
             title: 'Places',
             tabBarIcon: ({ color }) => <IoniconsSimple size={24} name="location-pin" color={color} />,

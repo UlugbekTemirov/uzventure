@@ -79,12 +79,12 @@ export default function ShoppingPage() {
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="Search products..."
           value={searchQuery}
+          onChange={(e) => handleSearch(e.nativeEvent.text)}
           onChangeText={handleSearch}
         />
         <Ionicons name="search" size={20} color="#555" style={styles.searchIcon} />
@@ -103,15 +103,19 @@ export default function ShoppingPage() {
           >
             <Image source={{ uri: item.image }} style={styles.productImage} />
             <Text style={styles.productName}>{item.name}</Text>
-            <Text style={styles.productPrice}>${item.price}</Text>
-            <Text style={{...styles.productAvailability, color: item.availability ? "green" : "red"}}>
-              {item.availability ? "In Stock" : "Out of Stock"}
-            </Text>
+            <Text style={styles.productDescription}>{item.description.slice(0, 20)}...</Text>
+            <View style={{
+              display: 'flex',
+              flexDirection: 'row', justifyContent: 'space-between'
+            }}>
+            <Text style={styles.productPrice}>${String(item.price) + ".00"}</Text>
+
+            <Text style={styles.productRating}>5.0 ★</Text>
+            </View>
           </TouchableOpacity>
         )}
       />
 
-      {/* Modal for Product Details */}
       <Modal
         visible={isModalVisible}
         transparent={true}
@@ -123,7 +127,7 @@ export default function ShoppingPage() {
             <Image source={{ uri: selectedProduct?.image }} style={styles.modalImage} />
             <Text style={styles.modalTitle}>{selectedProduct?.name}</Text>
             <Text style={styles.modalDescription}>{selectedProduct?.description}</Text>
-            <Text style={styles.modalPrice}>Price: ${selectedProduct?.price}</Text>
+            <Text style={styles.modalPrice}>Price: ${selectedProduct?.price + ".00"}</Text>
             <Text style={styles.modalShopName}>Shop: {selectedProduct?.shopName}</Text>
             <Text style={styles.modalSellerName}>Seller: {selectedProduct?.sellerName}</Text>
 
@@ -134,8 +138,8 @@ export default function ShoppingPage() {
               >
                 <Text style={styles.contactText}>Contact</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.addToCartButton}>
-                <Text style={styles.addToCartText}>Add to Basket</Text>
+              <TouchableOpacity onPress={() => handleContactPress(selectedProduct?.phoneNumber)} style={styles.addToCartButton}>
+                <Text style={styles.addToCartText}>Buy now</Text>
               </TouchableOpacity>
             </View>
 
@@ -188,7 +192,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     margin: 5,
     padding: 10,
-    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -202,21 +205,33 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
   },
+  productDescription: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "left",
+    marginBottom: 5,
+  },
   productName: {
     fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center",
+    textAlign: "left",
     marginBottom: 5,
   },
   productPrice: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#FF7F50",
     fontWeight: "bold",
+    textAlign: "left",
+  },
+  productRating: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "right",
   },
   productAvailability: {
     fontSize: 12,
     color: "#555",
-    marginTop: 5,
+    fontWeight: "bold",
   },
   loaderContainer: {
     flex: 1,

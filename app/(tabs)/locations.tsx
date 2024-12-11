@@ -13,16 +13,18 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { Linking } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function LocationsPage() {
-  const route = useRoute();
+  const route = useRoute() as any;
+  const router = useRouter();
 
   const [districts, setDistricts] = useState([]);
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isModalVisible, setModalVisible] = useState(false);
 
-  // @ts-ignore
   const id = (route?.params?.id as any) || null;
 
   useEffect(() => {
@@ -139,8 +141,12 @@ export default function LocationsPage() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Explore Locations</Text>
+      <TouchableOpacity onPress={() => router.push('/locations-map')} style={styles.mapButton}>
+        <Ionicons name='map-outline' size={25} color='#fff' />
+      </TouchableOpacity>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Text style={styles.header}>Explore Locations</Text>
         {districts.map((district: any) => (
           <View key={district.id} style={styles.districtContainer}>
             <Text style={styles.districtName}>{district.name}</Text>
@@ -237,7 +243,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   header: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 20,
@@ -343,4 +349,22 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "bold",
   },
+  mapButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 40,
+    backgroundColor: '#FF7F50',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  
 });

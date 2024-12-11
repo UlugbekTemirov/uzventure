@@ -2,49 +2,20 @@ import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import { Image, Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { auth, db } from "@/config/firebaseConfig";
+import { auth } from "@/config/firebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import { doc, getDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import {  useClerk, useUser } from "@clerk/clerk-expo";
 
 export default function CustomDrawerContent({ ...props }: any) {
   const router = useRouter();
   const { bottom } = useSafeAreaInsets();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUser = async () => {
-    try {
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        const userDocRef = doc(db, "users", userId);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUser(userDoc.data());
-        } else {
-          console.warn("User data not found in Firestore.");
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
-
-  useEffect(() => {
-    const initialize = async () => {
-      await fetchUser();
-      setLoading(false);
-    };
-    initialize();
-  }, []);
-
+  const { user } = useUser();
+  const { signOut } = useClerk()
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("userId");
-    await auth.signOut();
-    router.push("/(auth)/login");
+    signOut({redirectUrl: '/'})
   };
 
   const renderRouteName = (route: any) => {
@@ -52,10 +23,8 @@ export default function CustomDrawerContent({ ...props }: any) {
       return "Home";
     } else if (route.name === "news/index") {
       return "News";
-    } else if (route.name === "profile") {
-      return "Profile";
-    } else if (route.name === "(auth)/login") {
-      return "Login";
+    } else if (route.name === 'locations-map') {
+      return 'Locations'
     }
     return route.name;
   };
@@ -65,10 +34,8 @@ export default function CustomDrawerContent({ ...props }: any) {
       return "home";
     } else if (route.name === "news/index") {
       return "newspaper";
-    } else if (route.name === "profile") {
-      return "person-circle-outline";
-    } else if (route.name === "(auth)/login") {
-      return "log-in";
+    } else if (route.name === 'locations-map') {
+      return 'map-outline'
     }
     return route.name;
   };
@@ -80,13 +47,15 @@ export default function CustomDrawerContent({ ...props }: any) {
         contentContainerStyle={{ backgroundColor: "#fff" }}
       >
         <View style={styles.profileContainer}>
-          <View>
-            <Text style={styles.profileName}>{user?.name || "Guest"}</Text>
-            <Text style={styles.profileEmail}>{user?.email || "No Email"}</Text>
+          <View style={{
+            maxWidth: '70%'
+          }}>
+            <Text style={styles.profileName}>{user?.fullName || "Guest"}</Text>
+            <Text style={styles.profileEmail}>{ user?.emailAddresses[0].emailAddress || "No Email"}</Text>
           </View>
           <Image
             source={{
-              uri: user?.avatar || "https://avatar.iran.liara.run/public/boy",
+              uri: user?.imageUrl || "https://avatar.iran.liara.run/public/boy",
             }}
             style={styles.profileImage}
           />
@@ -94,7 +63,7 @@ export default function CustomDrawerContent({ ...props }: any) {
 
         {props.state.routes
           .filter((route: any) =>
-            ["(tabs)", "news/index", "profile", "(auth)/login"].includes(route.name)
+            ["(tabs)", "news/index", 'locations-map'].includes(route.name)
           )
           .map((route: any, index: any) => (
             <TouchableOpacity

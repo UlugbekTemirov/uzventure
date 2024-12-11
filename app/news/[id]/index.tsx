@@ -10,9 +10,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 
 
-const renderContent = (content: any) => {
-    return <View style={styles.contentItemContainer}>
-        <Text style={styles.contentTitle} key={content.title}>{content.title}</Text>
+const renderContent = (content: any, index: number) => {
+    return <View key={index} style={styles.contentItemContainer}>
+        <Text style={styles.contentTitle}>{content.title}</Text>
         <Text style={styles.contentDescription} key={content.text}>{content.description}</Text>
         {content?.quote && <View style={styles.contentQuoteContainer}>
             <Text style={styles.contentQuoteText}>{content.quote.text}</Text>
@@ -20,8 +20,8 @@ const renderContent = (content: any) => {
             </View>}
 
             {content?.features && <View style={styles.contentFeaturesContainer}>
-                {content.features.map((feature: any) =>
-                    <Text> <Text style={{fontWeight: 'bold'}}>• {feature.title}</Text> {feature.text}</Text>
+                {content.features.map((feature: any, index: number) =>
+                    <Text key={index}> <Text style={{fontWeight: 'bold'}}>• {feature.title}</Text> {feature.text}</Text>
                     )}
                 </View>}
     </View>
@@ -83,7 +83,7 @@ export default function NewsDetailsScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push("/news")}
           style={styles.goBackButton}
         >
           <Ionicons name="arrow-back" size={18} color="black" />
@@ -98,12 +98,12 @@ export default function NewsDetailsScreen() {
       <Text style={styles.subtitle}>{newsData.description}</Text>
 
       <View style={styles.contentContainer}>
-        {newsData.content.map((content: any) => renderContent(content))}
+        {newsData.content.map((content: any, index: number) => renderContent(content, index))}
       </View>
 
       <View>
         <Text style={{fontSize: 24, fontWeight: 'bold', marginBottom: 10}}>Looking Ahead 👀</Text>
-        {newsData.future_features.map((feature: any) => <View style={{marginTop: 10}}>
+        {newsData.future_features.map((feature: any, index: number) => <View key={index} style={{marginTop: 10}}>
             <Text style={styles.contentTitle}>{feature.title}</Text>
             <Text style={styles.contentDescription}>{feature.description}</Text>
         </View>)}

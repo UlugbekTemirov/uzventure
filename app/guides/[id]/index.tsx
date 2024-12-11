@@ -127,7 +127,7 @@ Best regards,
           }}
         >
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.push("/guides")}
             style={styles.goBackButton}
           >
             <Ionicons name="arrow-back" size={18} color="black" />
