@@ -172,11 +172,11 @@ export default function HomePage() {
                     }}
                     style={styles.placeImage}
                   />
-                  <Text style={styles.placeTitle}>
+                  <Text numberOfLines={1} ellipsizeMode="tail" style={styles.placeTitle}>
                     {item?.name} | {item?.region?.name}
                   </Text>
-                  <Text style={styles.placeSubtitle}>
-                    {item?.info?.slice(0, 34) + "..."}
+                  <Text numberOfLines={2} ellipsizeMode="tail" style={styles.placeSubtitle}>
+                    {item?.info}
                   </Text>
                 </TouchableOpacity>
               )}

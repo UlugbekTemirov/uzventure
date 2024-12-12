@@ -26,9 +26,11 @@ import {
 import { db } from "@/config/firebaseConfig";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function GuideDetailPage() {
   const { id }: any = useLocalSearchParams();
+  const {user} = useUser()
   const router = useRouter();
 
   const [selectedCar, setSelectedCar] = useState<any>(null);
@@ -95,7 +97,7 @@ Looking forward to your response!
 
 Best regards,
 
-[Anonymous Tourist]`;
+${`${user?.fullName} | Tourist` || "Unknown User"}`;
 
     const url = `mailto:${email}?subject=${encodeURIComponent(
       subject
