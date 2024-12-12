@@ -103,7 +103,8 @@ export default function ShoppingPage() {
           >
             <Image source={{ uri: item.image }} style={styles.productImage} />
             <Text style={styles.productName}>{item.name}</Text>
-            <Text style={styles.productDescription}>{item.description.slice(0, 20)}...</Text>
+          <Text style={styles.productDescription} numberOfLines={1}
+          ellipsizeMode="tail">{item.description}</Text>
             <View style={{
               display: 'flex',
               flexDirection: 'row', justifyContent: 'space-between'

@@ -2,8 +2,6 @@ import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import { Image, Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { auth } from "@/config/firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import {  useClerk, useUser } from "@clerk/clerk-expo";
@@ -28,14 +26,14 @@ export default function CustomDrawerContent({ ...props }: any) {
     }
     return route.name;
   };
-
+6
   const renderIconName = (route: any) => {
     if (route.name === "(tabs)") {
       return "home";
     } else if (route.name === "news/index") {
       return "newspaper";
     } else if (route.name === 'locations-map') {
-      return 'map-outline'
+      return 'map'
     }
     return route.name;
   };

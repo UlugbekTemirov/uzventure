@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useWarmUpBrowser } from "@/hooks/useWarmUpBrowser";
 import { useOAuth } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router"; // Import useRouter hook
+import { Ionicons } from "@expo/vector-icons";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -12,9 +13,11 @@ export default function LoginScreen() {
   useWarmUpBrowser();
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
   const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
 
   const onPress = React.useCallback(async () => {
     try {
+      setLoading(true);
       const result = await startOAuthFlow();
 
       const { createdSessionId, setActive, signIn, signUp } = result as any;
@@ -34,6 +37,8 @@ export default function LoginScreen() {
       }
     } catch (err) {
       console.log("OAuth error:", err);
+    } finally {
+      setLoading(false);
     }
   }, [router]);
 
@@ -48,12 +53,13 @@ export default function LoginScreen() {
       <View style={{ backgroundColor: "#ffff", padding: 20, marginTop: -50 }}>
       <Text
           style={{
-            fontSize: 30,
+            fontSize: 25,
             textAlign: "center",
-            fontWeight: "bold",
+            maxWidth: "90%",
+            marginHorizontal: 'auto'
           }}
         >
-          Your ultimate travel companion
+          <Text style={{color: Colors.light.tint, fontWeight: "bold"}}>UzVenture</Text> - Your ultimate travel companion
         </Text>
         <Text
           style={{
@@ -66,20 +72,12 @@ export default function LoginScreen() {
         >
           Discover the best destinations around the world and find local guides who can show you the hidden gems of your destination
         </Text>
-        <TouchableOpacity style={styles.btn} onPress={onPress}>
-          <Text
-            style={{
-                fontSize: 20,
-              textAlign: "center",
-              color: "#ffff",
-              fontFamily: "outfitregular",
-              fontWeight: "bold",
-              paddingBottom: 2
-            }}
-          >
-            Get Started
-          </Text>
-        </TouchableOpacity>
+        <TouchableOpacity disabled={loading} style={{...styles.btn, backgroundColor: loading ? 'gray' : Colors.light.tint}} onPress={onPress}>
+      <Ionicons name="logo-google" size={24} color="#fff" style={styles.icon} />
+      <Text style={styles.text}>
+        {loading ? "Loading..." : "Continue with Google"}
+      </Text>
+    </TouchableOpacity>
       </View>
     </View>
   );
@@ -88,9 +86,23 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   btn: {
     backgroundColor: Colors.light.tint,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 99,
-    marginTop: 20
+    marginTop: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  icon: {
+    marginRight: 10,
+  },
+  text: {
+    fontSize: 18,
+    color: "#fff",
+    fontFamily: "outfitregular",
+    fontWeight: "bold",
+    paddingBottom: 2
   },
   illustration: {
     width: "100%",

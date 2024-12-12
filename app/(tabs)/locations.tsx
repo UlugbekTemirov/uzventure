@@ -101,8 +101,9 @@ export default function LocationsPage() {
   }, []);
 
   const handleLocationPress = (location: any) => {
-    setSelectedLocation(location);
-    setModalVisible(true);
+    router.push(`/location/${location.id}`);
+    // setSelectedLocation(location);
+    // setModalVisible(true);
   };
 
   const closeModal = () => {

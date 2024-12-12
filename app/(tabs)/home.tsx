@@ -163,7 +163,7 @@ export default function HomePage() {
               contentContainerStyle={styles.placesContainer}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => router.push(`/locations?id=${item.id || ""}`)}
+                  onPress={() => router.push(`/location/${item.id}`)}
                   style={styles.placeCard}
                 >
                   <Image
@@ -199,7 +199,7 @@ export default function HomePage() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.guidesContainer}
             renderItem={({ item }) => (
-              <View style={styles.guideCard}>
+              <TouchableOpacity onPress={() => router.push(`/guides/${item.id}`)} style={styles.guideCard}>
                 <Image
                   source={{
                     uri:
@@ -238,7 +238,7 @@ export default function HomePage() {
                     ${item.price} / hour
                   </ThemedText>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
           />
         </View>
