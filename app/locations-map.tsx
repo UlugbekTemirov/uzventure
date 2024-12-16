@@ -68,7 +68,7 @@ export default function App() {
       >
         {locations.length > 0 &&
           locations.map((location: any, index: number) => (
-            <LocationMarker key={index} location={location} />
+            location?.geoLocation && <LocationMarker key={index} location={location} />
           ))}
       </MapView>
 

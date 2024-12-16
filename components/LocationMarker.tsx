@@ -7,15 +7,16 @@ const LocationMarker = ({ location }: any) => {
   const router = useRouter()
   return (
     <Marker
+    key={location.id}
       onPress={() => router.push(`/location/${location.id}`)}
       coordinate={{
-        latitude: location.geoLocation.latitude,
-        longitude: location.geoLocation.longitude,
+        latitude: location?.geoLocation?.latitude,
+        longitude: location?.geoLocation?.longitude,
       }}
     >
       <TouchableOpacity style={styles.customMarker}>
         <Image source={{ uri: location?.image }} style={styles.markerImage} />
-        <View style={styles.markerArrow} />
+        {/* <View style={styles.markerArrow} /> */}
       </TouchableOpacity>
     </Marker>
   );
@@ -28,8 +29,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   markerImage: {
-    width: 50,
-    height: 50,
+    width: 35,
+    height: 35,
     borderRadius: 25,
     borderWidth: 2,
     borderColor: "#FF7F50",

@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemedText } from "@/components/ThemedText";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/config/firebaseConfig";
 import { useRouter } from "expo-router";
 
@@ -25,6 +25,10 @@ export default function HomePage() {
   const [locations, setLocations] = useState<any>([]);
   const [guides, setGuides] = useState<any>([]);
   const [categories, setCategories] = useState<any>([]);
+  const [search, setSearch] = useState<string>("");
+  const [blur, setBlur] = useState<boolean>(false);
+  const [category, setCategory] = useState<string>('all')
+  const [searchLocationsData, setSearchLocationsData] = useState<any>([]);
 
   const fetchGuides = async () => {
     try {
@@ -53,6 +57,37 @@ export default function HomePage() {
       return [];
     }
   };
+
+  const searchLocations = async (search: string, category: string) => {
+    try {
+      let locationsQuery = query(collection(db, "locations"));
+  
+      if (search) {
+        locationsQuery = query(
+          locationsQuery,
+          where("name", ">=", search),
+          where("name", "<=", search + "\uf8ff")
+        );
+      }
+  
+      if (category && category !== "all") {
+        locationsQuery = query(locationsQuery, where("category", "==", category));
+      }
+  
+      const querySnapshot = await getDocs(locationsQuery);
+      const locations = [] as any;
+  
+      querySnapshot.forEach((doc) => {
+        locations.push({ id: doc.id, ...doc.data() });
+      });
+  
+      return locations;
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+      return [];
+    }
+  };
+
 
   const fetchCategories = async () => {
     try {
@@ -92,6 +127,21 @@ export default function HomePage() {
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    async function loadLocations() {
+      setLoading(true);
+      const data = await searchLocations(search, category);
+      setSearchLocationsData(data);
+      setLoading(false);
+    }
+      if (search.trim() !== '') {
+        loadLocations();
+      }
+
+  }, [search, category])
+
+  console.log("search locations data -----------------",searchLocationsData)
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
@@ -102,11 +152,31 @@ export default function HomePage() {
         </Text>
 
         {/* Search Bar */}
+        <View style={{...styles.searchWrapper, position: blur ? 'absolute' : 'relative', backgroundColor: blur ? 'rgba(0, 0, 0, 0.5)' : 'transparent', height: blur ? '100%' : 'auto', paddingTop: blur ? 0 : 0, borderRadius: blur ? 15 : 0, marginTop: blur ? 10 : 0 }}>
         <View style={styles.searchContainer}>
-          <TextInput placeholder="Search places" style={styles.searchInput} />
+          <TextInput value={search} onChangeText={setSearch} onBlur={() => {setBlur(false); setSearch(''); setSearchLocationsData([])}} onFocus={() => setBlur(true)} placeholder="Search places" style={styles.searchInput} />
           <TouchableOpacity style={styles.searchIconContainer}>
             <Ionicons name="filter" size={20} color="white" />
           </TouchableOpacity>
+        </View>
+
+        {/* Search Results */}
+        {searchLocationsData.length > 0 && (<ScrollView style={styles.searchResults}>
+          {searchLocationsData.length > 0 ? (
+            searchLocationsData.map((location: any) => (
+              <TouchableOpacity
+                key={location.id}
+                onPress={() => router.push(`/location/${location.id}`)}
+                style={styles.searchResultItem}
+              >
+                <Image source={{ uri: location.image }} style={styles.searchResultImage} />
+                <Text style={styles.searchResultText}>{location.name}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.noResultsText}>No results found</Text>
+          )}
+        </ScrollView>)}
         </View>
 
         {/* Categories Section */}
@@ -255,7 +325,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
+    padding: 0,
   },
   headerText: {
     fontSize: 28,
@@ -267,6 +337,10 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: "#FF7F50",
   },
+  searchWrapper: {
+    width: '100%',
+    zIndex: 10,
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -274,6 +348,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     shadowColor: "#000",
+    width: '100%',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -287,6 +362,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF7F50",
     padding: 10,
     borderRadius: 8,
+  },
+  searchResults: {
+
+  },
+  searchResultItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+  },
+  searchResultImage: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
+    borderRadius: 8,
+  },
+  searchResultText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "black",
   },
   sectionTitle: {
     fontSize: 20,
@@ -394,4 +488,10 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     fontSize: 13,
   },
+  noResultsText: {
+    fontSize: 16,
+    color: "gray",
+    textAlign: "center",
+    marginTop: 20,
+  }
 });

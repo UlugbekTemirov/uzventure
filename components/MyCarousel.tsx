@@ -4,7 +4,6 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-rean
 import Carousel from "react-native-reanimated-carousel";
 
 function Index({ images = ['1', "2"] }) {
-    console.log(images)
   const width = Dimensions.get("window").width;
   configureReanimatedLogger({
     level: ReanimatedLogLevel.warn,

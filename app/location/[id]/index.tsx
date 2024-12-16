@@ -25,19 +25,6 @@ const LocationDetails = () => {
   const [location, setLocation] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-//   const [scrollEnabled, setScrollEnabled] = useState(true);
-// const [panHandlers, setPanHandlers] = useState({});
-// useEffect(() => {
-//     const panResponder = PanResponder.create({
-//         onStartShouldSetPanResponder: () => true,
-//         onMoveShouldSetPanResponder: () => true,
-//         onPanResponderStart: (event, gesture) => {
-//             setTimeout(() => setScrollEnabled(gesture.numberActiveTouches === 2), 100)
-//         }
-//     });
-//     setPanHandlers(panResponder.panHandlers);
-// }, []);
-
   const fetchGuideByField = async () => {
     const q = query(collection(db, "locations"), where("id", "==", id));
     const querySnapshot = await getDocs(q);
@@ -59,15 +46,13 @@ const LocationDetails = () => {
     loadGuides();
   }, []);
 
-  if (loading) {
+  if (loading || !location) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#FF7F50" />
       </View>
     );
   }
-
-  console.log(location)
 
   return (
     <View style={styles.container}>
@@ -99,7 +84,6 @@ const LocationDetails = () => {
       </View>
 
       <View  
-    //   {...panHandlers}
        style={{
         overflow: 'hidden',
         borderRadius: 10    
@@ -113,7 +97,7 @@ const LocationDetails = () => {
         }}
         style={styles.map}
       >
-          {!loading && <LocationMarker location={location} />}
+          {location && location?.geoLocation && (<LocationMarker location={location} />)}
       </MapView>
       </View>
 
